@@ -2,11 +2,16 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import WebsiteLayout from './layouts/WebsiteLayout';
+import { createNewGame } from '../../supabase/game';
 
 export default function Home() {
 	const [playerName, setPlayerName] = useState('');
+	const [gameId, setGameId] = useState('');
 	const [isStarting, setIsStarting] = useState(false);
+	const [isJoining, setIsJoining] = useState(false);
+	const router = useRouter();
 
 	const handleAnonymousStart = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -15,8 +20,31 @@ export default function Home() {
 		setIsStarting(true);
 		console.log('Starting game for:', playerName);
 
+		// TODO: Create new game and get game ID
+		const newGame = await createNewGame(playerName);
+		if (!newGame) {
+			throw new Error('Failed to create new game');
+		}
+		console.log('New game created:', newGame);
+		const newGameId = newGame.game.game_uuid;
+		console.log('New game ID:', newGameId);
+
 		setTimeout(() => {
 			setIsStarting(false);
+			router.push(`/active-game/${newGameId}`);
+		}, 1000);
+	};
+
+	const handleJoinGame = async (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!playerName.trim() || !gameId.trim()) return;
+
+		setIsJoining(true);
+		console.log('Joining game:', gameId, 'for player:', playerName);
+
+		setTimeout(() => {
+			setIsJoining(false);
+			router.push(`/active-game/${gameId}`);
 		}, 1000);
 	};
 
@@ -30,7 +58,7 @@ export default function Home() {
 					<div className="absolute top-40 left-40 w-80 h-80 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
 				</div>
 
-				<div className="relative max-w-2xl w-full space-y-8 z-10">
+				<div className="relative max-w-4xl w-full space-y-8 z-10">
 					{/* Header */}
 					<div className="text-center space-y-6">
 						<div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full shadow-lg mb-6">
@@ -54,7 +82,7 @@ export default function Home() {
 					</div>
 
 					{/* Main Content Cards */}
-					<div className="grid md:grid-cols-2 gap-6">
+					<div className="grid md:grid-cols-3 gap-6">
 						{/* Anonymous Game Form */}
 						<div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-8 hover:shadow-2xl transition-all duration-300">
 							<div className="flex items-center mb-6">
@@ -103,7 +131,77 @@ export default function Home() {
 											Starting Game...
 										</div>
 									) : (
-										'Start Game Anonymously'
+										'Start New Game'
+									)}
+								</button>
+							</form>
+						</div>
+
+						{/* Join Game Form */}
+						<div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-8 hover:shadow-2xl transition-all duration-300">
+							<div className="flex items-center mb-6">
+								<div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-4">
+									<svg
+										className="w-5 h-5 text-white"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24">
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+										/>
+									</svg>
+								</div>
+								<h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+									Join Game
+								</h2>
+							</div>
+							<form onSubmit={handleJoinGame} className="space-y-6">
+								<div>
+									<label
+										htmlFor="joinPlayerName"
+										className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+										Your name
+									</label>
+									<input
+										id="joinPlayerName"
+										type="text"
+										value={playerName}
+										onChange={(e) => setPlayerName(e.target.value)}
+										placeholder="Your name"
+										className="w-full px-4 py-3 bg-white/50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent backdrop-blur-sm transition-all duration-200"
+										required
+									/>
+								</div>
+								<div>
+									<label
+										htmlFor="gameId"
+										className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+										Game ID
+									</label>
+									<input
+										id="gameId"
+										type="text"
+										value={gameId}
+										onChange={(e) => setGameId(e.target.value)}
+										placeholder="Enter game ID"
+										className="w-full px-4 py-3 bg-white/50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent backdrop-blur-sm transition-all duration-200"
+										required
+									/>
+								</div>
+								<button
+									type="submit"
+									disabled={isJoining || !playerName.trim() || !gameId.trim()}
+									className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
+									{isJoining ? (
+										<div className="flex items-center justify-center">
+											<div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+											Joining Game...
+										</div>
+									) : (
+										'Join Existing Game'
 									)}
 								</button>
 							</form>
