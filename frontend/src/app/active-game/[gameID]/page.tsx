@@ -5,7 +5,7 @@ interface GamePageProps {
 }
 
 import AppLayout from '@/app/layouts/AppLayout';
-import supabase from '../../../../supabase/client';
+import supabase from '../../../../../backend/functions/supabase/client';
 import GameBoard from '../../components/GameBoard';
 
 export default async function GamePage({ params }: GamePageProps) {

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import WebsiteLayout from './layouts/WebsiteLayout';
-import { createNewGame } from '../../supabase/game';
+import { createNewGame } from '../../../backend/functions/supabase/game';
 
 export default function Home() {
 	const [playerName, setPlayerName] = useState('');
