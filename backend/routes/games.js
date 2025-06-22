@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
-const { GetGameAndPartyData } = require('../functions/supabase/game.js');
+const {
+	GetGameAndPartyData,
+	AddPlayerToGame,
+} = require('../functions/supabase/game.js');
 
 // GET all games
 router.get('/', async (req, res) => {
@@ -104,6 +107,32 @@ router.post('/', async (req, res) => {
 	}
 });
 
+// POST update life count
+
+router.post('/:gameId/players/:playerId/life-count', async (req, res) => {
+	try {
+		const { gameId, playerId } = req.params;
+		const { lifeCount } = req.body;
+		console.log('Life count', lifeCount);
+
+		const { data, error } = await supabase
+			.from('player_game_logs')
+			.insert({
+				game_uuid: gameId,
+				player_uuid: playerId,
+				life_count: lifeCount,
+			})
+			.select();
+
+		if (error) throw error;
+
+		res.json({ data, message: 'Life count updated successfully' });
+	} catch (error) {
+		console.error('Error updating life count:', error);
+		res.status(500).json({ error: 'Failed to update life count' });
+	}
+});
+
 // PUT update game
 router.put('/:gameId', async (req, res) => {
 	try {
@@ -130,6 +159,40 @@ router.put('/:gameId', async (req, res) => {
 	} catch (error) {
 		console.error('Error updating game:', error);
 		res.status(500).json({ error: 'Failed to update game' });
+	}
+});
+
+// POST add player to game
+
+router.post('/:gameId/players/add-player', async (req, res) => {
+	try {
+		const { gameId } = req.params;
+		const { playerName, email, playerType } = req.body;
+
+		console.log(gameId, playerName, email, playerType);
+
+		if (!playerName || !email || !playerType) {
+			return res
+				.status(400)
+				.json({ error: 'Player name, email, and player type are required' });
+		}
+
+		const { playerData, gameData, playerLogData } = await AddPlayerToGame(
+			gameId,
+			playerName,
+			email,
+			playerType
+		);
+
+		res.status(201).json({
+			player: playerData,
+			game: gameData,
+			playerLog: playerLogData,
+			message: `Time to sling some spells, ${playerName}!`,
+		});
+	} catch (error) {
+		console.error('Error adding player to game:', error);
+		res.status(500).json({ error: 'Failed to add player to game' });
 	}
 });
 

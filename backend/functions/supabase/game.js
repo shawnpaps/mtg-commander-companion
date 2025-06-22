@@ -80,4 +80,69 @@ const GetGameAndPartyData = async (gameId) => {
 	}
 };
 
-module.exports = { GetGameAndPartyData };
+const GetGameData = async (gameId) => {
+	const { data: gameData, error: gameError } = await supabase
+		.from('games')
+		.select('*')
+		.eq('game_uuid', gameId)
+		.single();
+
+	if (gameError) {
+		console.error('Error fetching game:', gameError);
+		throw gameError;
+	}
+
+	return gameData;
+};
+
+const AddPlayerToGame = async (gameId, playerName, email, playerType) => {
+	const currentGameData = await GetGameData(gameId);
+	const { data: playerData, error: playerError } = await supabase
+		.from('players')
+		.insert({
+			player_name: playerName,
+			email_address: email,
+			player_type: playerType,
+		})
+		.select()
+		.single();
+
+	if (playerError) {
+		console.error('Error adding player to game:', playerError);
+		throw playerError;
+	}
+
+	const { data: gameData, error: gameError } = await supabase
+		.from('games')
+		.update({
+			party_size: currentGameData.party_size + 1,
+		})
+		.eq('game_uuid', gameId)
+		.select()
+		.single();
+
+	if (gameError) {
+		console.error('Error updating game:', gameError);
+		throw gameError;
+	}
+
+	console.log('PlayerData after game party update:', playerData);
+
+	const { data: playerLogData, error: playerLogError } = await supabase
+		.from('player_game_logs')
+		.insert({
+			player_uuid: playerData.player_uuid,
+			game_uuid: gameData.game_uuid,
+			life_count: 40,
+		})
+		.select();
+
+	if (playerLogError) {
+		console.error('Error adding player log:', playerLogError);
+		throw playerLogError;
+	}
+
+	return { playerData, gameData, playerLogData };
+};
+
+module.exports = { GetGameAndPartyData, AddPlayerToGame };

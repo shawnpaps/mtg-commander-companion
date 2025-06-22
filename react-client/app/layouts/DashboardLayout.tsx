@@ -11,7 +11,7 @@ export function meta({}: Route.MetaArgs) {
 
 const DashboardLayout = () => {
 	return (
-		<main className="pt-16 p-4 container mx-auto flex flex-col items-center justify-center">
+		<main className="pt-16 p-4 container mx-auto flex flex-col items-center justify-center max-w-screen-md">
 			<Outlet />
 		</main>
 	);

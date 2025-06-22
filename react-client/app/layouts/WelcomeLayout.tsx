@@ -11,11 +11,15 @@ export function meta({}: Route.MetaArgs) {
 export default function WelcomeLayout() {
 	return (
 		<main className="pt-16 p-4 container mx-auto flex flex-col items-center justify-center">
-			<h1 className="text-4xl font-bold">MTG EDH Companion</h1>
-			<h2 className="text-2xl font-bold">
-				The Ultimate in-person Game State Manager for Magic: The Gathering
-			</h2>
-			<Outlet />
+			<div className="w-full h-[20rem] flex-col flex items-center justify-center gap-4">
+				<h1 className="text-4xl font-bold">MTG EDH Companion</h1>
+				<h2 className="text-2xl font-bold">
+					The Ultimate in-person Game State Manager for Magic: The Gathering
+				</h2>
+			</div>
+			<div className="w-full flex-col flex items-center justify-center">
+				<Outlet />
+			</div>
 		</main>
 	);
 }

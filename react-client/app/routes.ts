@@ -10,6 +10,7 @@ export default [
 	layout('layouts/WelcomeLayout.tsx', [
 		index('home/home.tsx'),
 		route('new-game', 'home/new-game.tsx'),
+		route('join-game', 'home/join-game.tsx'),
 	]),
 	...prefix('games', [
 		layout('layouts/DashboardLayout.tsx', [
