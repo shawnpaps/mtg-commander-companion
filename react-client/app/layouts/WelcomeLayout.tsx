@@ -1,5 +1,5 @@
-import type { Route } from './+types/home';
-import { Welcome } from '../welcome/welcome';
+import type { Route } from './+types/WelcomeLayout';
+import { Outlet } from 'react-router';
 
 export function meta({}: Route.MetaArgs) {
 	return [
@@ -8,18 +8,14 @@ export function meta({}: Route.MetaArgs) {
 	];
 }
 
-export default function Home() {
+export default function WelcomeLayout() {
 	return (
 		<main className="pt-16 p-4 container mx-auto flex flex-col items-center justify-center">
 			<h1 className="text-4xl font-bold">MTG EDH Companion</h1>
 			<h2 className="text-2xl font-bold">
 				The Ultimate in-person Game State Manager for Magic: The Gathering
 			</h2>
-			<div className="flex flex-col items-center justify-center gap-4 min-h-[40rem]">
-				<button className="btn btn-primary">Start a new game</button>
-				<span className="text-lg font-bold">or</span>
-				<button className="btn btn-primary">Join a game</button>
-			</div>
+			<Outlet />
 		</main>
 	);
 }

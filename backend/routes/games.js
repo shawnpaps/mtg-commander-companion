@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
+const { GetGameAndPartyData } = require('../functions/supabase/game.js');
 
 // GET all games
 router.get('/', async (req, res) => {
@@ -19,24 +20,25 @@ router.get('/', async (req, res) => {
 	}
 });
 
+router.get('/:gameId/players/:playerId', async (req, res) => {
+	try {
+		const { gameId, playerId } = req.params;
+		console.log(gameId, playerId);
+	} catch (error) {
+		console.error('Error fetching player:', error);
+		res.status(500).json({ error: 'Failed to fetch player' });
+	}
+});
+
 // GET game by ID
 router.get('/:gameId', async (req, res) => {
 	try {
 		const { gameId } = req.params;
+		console.log('gameId from frontend', gameId);
 
-		const { data, error } = await supabase
-			.from('games')
-			.select('*')
-			.eq('id', gameId)
-			.single();
-
-		if (error) throw error;
-
-		if (!data) {
-			return res.status(404).json({ error: 'Game not found' });
-		}
-
-		res.json({ game: data });
+		const gameData = await GetGameAndPartyData(gameId);
+		console.log('gameData from backend', gameData);
+		res.json({ game: gameData });
 	} catch (error) {
 		console.error('Error fetching game:', error);
 		res.status(500).json({ error: 'Failed to fetch game' });
@@ -46,30 +48,54 @@ router.get('/:gameId', async (req, res) => {
 // POST create new game
 router.post('/', async (req, res) => {
 	try {
-		const { playerName, startingLife = 40 } = req.body;
+		const { playerName, playerType, email } = req.body;
 
-		if (!playerName) {
-			return res.status(400).json({ error: 'Player name is required' });
+		console.log(playerName, playerType, email);
+
+		if (!playerName || !email) {
+			return res
+				.status(400)
+				.json({ error: 'Player name and email are required' });
 		}
 
-		const gameData = {
-			id: `game-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-			status: 'active',
-			starting_life: startingLife,
-			created_by: playerName,
-			created_at: new Date().toISOString(),
-		};
-
-		const { data, error } = await supabase
-			.from('games')
-			.insert([gameData])
+		const { data: playerData, error: playerError } = await supabase
+			.from('players')
+			.insert({
+				player_name: playerName,
+				player_type: playerType,
+				email_address: email,
+			})
 			.select()
 			.single();
 
-		if (error) throw error;
+		if (playerError) throw playerError;
+
+		const { data: gameData, error: gameError } = await supabase
+			.from('games')
+			.insert({
+				party_size: 1,
+			})
+			.select()
+			.single();
+
+		if (gameError) throw gameError;
+
+		const { data: gameLogData, error: gameLogError } = await supabase
+			.from('player_game_logs')
+			.insert({
+				game_uuid: gameData.game_uuid,
+				player_uuid: playerData.player_uuid,
+				life_count: 40,
+			})
+			.select()
+			.single();
+
+		if (gameLogError) throw gameLogError;
 
 		res.status(201).json({
-			game: data,
+			game: gameData,
+			player: playerData,
+			gameLog: gameLogData,
 			message: 'Game created successfully',
 		});
 	} catch (error) {
