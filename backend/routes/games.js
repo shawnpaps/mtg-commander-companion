@@ -196,6 +196,48 @@ router.post('/:gameId/players/add-player', async (req, res) => {
 	}
 });
 
+// PUT Player Leaves Game
+router.put('/:gameId/players/:playerId/leave-game', async (req, res) => {
+	try {
+		const { gameId, playerId } = req.params;
+
+		console.log('Game ID', gameId);
+		console.log('Player ID', playerId);
+
+		const { data: playerData, error: playerError } = await supabase
+			.from('players')
+			.select('*')
+			.eq('player_uuid', playerId)
+			.single();
+
+		const { data: gameData, error: gameError } = await supabase
+			.from('games')
+			.select('*')
+			.eq('game_uuid', gameId)
+			.single();
+
+		if (gameError) throw gameError;
+
+		const partySize = gameData.party_size;
+
+		const { data: updatedGameData, error: updatedGameError } = await supabase
+			.from('games')
+			.update({ party_size: partySize - 1 })
+			.eq('game_uuid', gameData.game_uuid)
+			.select()
+			.single();
+
+		if (updatedGameError) throw updatedGameError;
+
+		res.json({
+			game: updatedGameData,
+			message: `${playerData.player_name} left the game lobby`,
+		});
+	} catch (error) {
+		console.error('Error removing player from game:', error);
+		res.status(500).json({ error: 'Failed to remove player from game' });
+	}
+});
 // DELETE game
 router.delete('/:gameId', async (req, res) => {
 	try {

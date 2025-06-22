@@ -15,6 +15,7 @@ export default [
 	...prefix('games', [
 		layout('layouts/DashboardLayout.tsx', [
 			route(':gameId/players/:playerId', 'games/player-game-dashboard.tsx'),
+			route(':gameId/boards/:playerId/', 'games/player-board.tsx'),
 		]),
 	]),
 ] satisfies RouteConfig;
