@@ -2,6 +2,7 @@ const supabase = require('../../config/supabase');
 
 const GetGameAndPartyData = async (gameId) => {
 	try {
+		console.log('Getting game and party data for game:', gameId);
 		// Get the game data
 		const { data: gameData, error: gameError } = await supabase
 			.from('games')
@@ -20,17 +21,16 @@ const GetGameAndPartyData = async (gameId) => {
 
 		console.log('Game Data:', gameData);
 
-		// Get the most recent life count for each player in this game
+		// Get all players in this game with their current life count
 		const { data: playerLogs, error: playerError } = await supabase
 			.from('player_game_logs')
 			.select(
-				`
-				player_uuid,
-				life_count,
-				created_at,
-				players (
+				`*,
+				players(
 					player_name,
-					player_uuid
+					player_uuid,
+					commander,
+					life_count
 				)
 			`
 			)
@@ -38,7 +38,7 @@ const GetGameAndPartyData = async (gameId) => {
 			.order('created_at', { ascending: false });
 
 		if (playerError) {
-			console.error('Error fetching player logs:', playerError);
+			console.error('Error fetching players:', playerError);
 			throw playerError;
 		}
 
@@ -49,7 +49,6 @@ const GetGameAndPartyData = async (gameId) => {
 		const seenPlayers = new Set();
 
 		for (const log of playerLogs) {
-			console.log('Processing log:', log);
 			if (!seenPlayers.has(log.player_uuid)) {
 				seenPlayers.add(log.player_uuid);
 				latestPlayerLogs.push(log);
@@ -58,17 +57,21 @@ const GetGameAndPartyData = async (gameId) => {
 
 		console.log('Latest Player Logs:', latestPlayerLogs);
 
+		// Transform the data to match frontend expectations
+		const players = latestPlayerLogs.map((log) => {
+			return {
+				...log.players,
+				life_count: log.players.life_count,
+				last_updated: log.created_at,
+			};
+		});
+
+		console.log('Transformed Players:', players);
+
 		// Combine game data with player information
 		const gameWithParty = {
 			...gameData,
-			players: latestPlayerLogs.map((log) => {
-				console.log('Mapping log:', log);
-				return {
-					...log.players,
-					life_count: log.life_count,
-					last_updated: log.created_at,
-				};
-			}),
+			players: players || [],
 		};
 
 		console.log('Final gameWithParty:', gameWithParty);
@@ -103,6 +106,7 @@ const AddPlayerToGame = async (gameId, playerName, email, playerType) => {
 			player_name: playerName,
 			email_address: email,
 			player_type: playerType,
+			life_count: 40,
 		})
 		.select()
 		.single();
@@ -126,21 +130,15 @@ const AddPlayerToGame = async (gameId, playerName, email, playerType) => {
 		throw gameError;
 	}
 
-	console.log('PlayerData after game party update:', playerData);
-
 	const { data: playerLogData, error: playerLogError } = await supabase
 		.from('player_game_logs')
 		.insert({
 			player_uuid: playerData.player_uuid,
-			game_uuid: gameData.game_uuid,
-			life_count: 40,
+			game_uuid: gameId,
+			action: 'new player joined game',
 		})
 		.select();
-
-	if (playerLogError) {
-		console.error('Error adding player log:', playerLogError);
-		throw playerLogError;
-	}
+	console.log('PlayerData after game party update:', playerData);
 
 	return { playerData, gameData, playerLogData };
 };

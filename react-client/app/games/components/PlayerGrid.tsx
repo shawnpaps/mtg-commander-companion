@@ -8,7 +8,7 @@ const PlayerGrid = ({ game, playerId }: { game: any; playerId: string }) => {
 	const [currentPlayerId, setCurrentPlayerId] = useState(playerId || '');
 
 	const [playerLifeCount, setPlayerLifeCount] = useState(
-		game?.players?.[0]?.life_count
+		game?.players?.[0]?.life_count || 40
 	);
 
 	const handleLifeChange = (change: number) => {

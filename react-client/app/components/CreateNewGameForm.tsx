@@ -28,6 +28,7 @@ const CreateNewGameForm = () => {
 			navigate(
 				`/games/${data.game.game_uuid}/players/${data.player.player_uuid}`
 			);
+			toast.dismiss();
 		} else {
 			toast.error('Failed to create game');
 		}

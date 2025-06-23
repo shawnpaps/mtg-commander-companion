@@ -9,6 +9,8 @@ import {
 	FaBox,
 	FaTimes,
 	FaChevronUp,
+	FaSkullCrossbones,
+	FaSkull,
 } from 'react-icons/fa';
 import CardModule from './gameboard/CardModule';
 import GameBoardModule from './gameboard/GameBoardModule';
@@ -18,7 +20,7 @@ import CommandZoneModule from './gameboard/CommandZoneModule';
 const GameBoard = ({ player }: { player: any }) => {
 	console.log('Player', player);
 	return (
-		<div className="grid grid-cols-3 gap-4 p-4">
+		<div className="grid grid-cols-3 gap-4 p-4 mb-32">
 			{/* Battlefield - Green for creatures and combat */}
 			<GameBoardModule
 				title="Battlefield"
@@ -50,7 +52,8 @@ const GameBoard = ({ player }: { player: any }) => {
 
 			{/* Commander Info - Purple for legendary creatures */}
 			<CommandZoneModule
-				title="Commander Info"
+				title={`Command Zone`}
+				commanderName="Be'lakor, Dark Master"
 				description="Commander damage and abilities"
 				icon={<FaCrown className="w-6 h-6 text-purple-100" />}
 				classNames="col-span-3 bg-gradient-to-br from-purple-700 via-violet-600 to-purple-800 rounded-2xl p-6 shadow-lg border border-purple-400/30"
@@ -81,7 +84,7 @@ const GameBoard = ({ player }: { player: any }) => {
 			{/* Graveyard - Black for graveyard */}
 			<div className="col-span-1 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900 rounded-2xl p-4 shadow-lg border border-gray-600/30">
 				<div className="flex items-center gap-2 mb-2">
-					<FaBox className="w-5 h-5 text-gray-300" />
+					<FaSkullCrossbones className="text-white text-2xl" />
 					<h4 className="text-lg font-bold text-gray-200">Graveyard</h4>
 				</div>
 				<div className="text-2xl font-bold text-gray-300">0</div>

@@ -67,6 +67,7 @@ router.post('/', async (req, res) => {
 				player_name: playerName,
 				player_type: playerType,
 				email_address: email,
+				life_count: 40,
 			})
 			.select()
 			.single();
@@ -83,22 +84,22 @@ router.post('/', async (req, res) => {
 
 		if (gameError) throw gameError;
 
-		const { data: gameLogData, error: gameLogError } = await supabase
+		const { data: playerLogData, error: playerLogError } = await supabase
 			.from('player_game_logs')
 			.insert({
 				game_uuid: gameData.game_uuid,
 				player_uuid: playerData.player_uuid,
-				life_count: 40,
+				action: 'new player joined game',
 			})
 			.select()
 			.single();
 
-		if (gameLogError) throw gameLogError;
+		if (playerLogError) throw playerLogError;
 
 		res.status(201).json({
 			game: gameData,
 			player: playerData,
-			gameLog: gameLogData,
+			playerLog: playerLogData,
 			message: 'Game created successfully',
 		});
 	} catch (error) {
@@ -108,7 +109,6 @@ router.post('/', async (req, res) => {
 });
 
 // POST update life count
-
 router.post('/:gameId/players/:playerId/life-count', async (req, res) => {
 	try {
 		const { gameId, playerId } = req.params;
@@ -116,12 +116,9 @@ router.post('/:gameId/players/:playerId/life-count', async (req, res) => {
 		console.log('Life count', lifeCount);
 
 		const { data, error } = await supabase
-			.from('player_game_logs')
-			.insert({
-				game_uuid: gameId,
-				player_uuid: playerId,
-				life_count: lifeCount,
-			})
+			.from('players')
+			.update({ life_count: lifeCount })
+			.eq('player_uuid', playerId)
 			.select();
 
 		if (error) throw error;
@@ -229,8 +226,21 @@ router.put('/:gameId/players/:playerId/leave-game', async (req, res) => {
 
 		if (updatedGameError) throw updatedGameError;
 
+		const { data: playerLogData, error: playerLogError } = await supabase
+			.from('player_game_logs')
+			.insert({
+				game_uuid: gameData.game_uuid,
+				player_uuid: playerId,
+				action: 'player left game',
+			})
+			.select()
+			.single();
+
+		if (playerLogError) throw playerLogError;
+
 		res.json({
 			game: updatedGameData,
+			playerLog: playerLogData,
 			message: `${playerData.player_name} left the game lobby`,
 		});
 	} catch (error) {

@@ -14,6 +14,7 @@ export function meta({}: Route.MetaArgs) {
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 	const res = await fetch(`${BACKEND_URL}/api/games/${params.gameId}`);
 	const gameData = await res.json();
+	console.log('GameData', gameData);
 	return gameData;
 }
 
@@ -30,6 +31,7 @@ export function HydrateFallback() {
 }
 const DashboardLayout = ({ loaderData }: Route.ComponentProps) => {
 	const { game } = loaderData;
+	console.log('Game', game);
 	const { playerId } = useParams();
 
 	const links = game.players.map((player: any) => {

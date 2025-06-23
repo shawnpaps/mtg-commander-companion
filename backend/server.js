@@ -2,8 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const ScryfallSyncService = require('./config/scryfall-sync');
 
 require('dotenv').config();
+
+const syncService = new ScryfallSyncService();
+
+syncService.scheduleDailySync();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -31,6 +36,7 @@ app.get('/health', (req, res) => {
 
 // Game routes
 app.use('/api/games', require('./routes/games'));
+app.use('/api/scryfall', require('./routes/scryfall'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
