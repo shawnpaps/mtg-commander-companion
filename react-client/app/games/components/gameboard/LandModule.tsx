@@ -70,10 +70,7 @@ const LandModule = ({
 								Special Lands
 							</h2>
 							<ul className="flex flex-wrap gap-4 justify-between w-full mt-2 text-2xl">
-								<li className="flex flex-col items-center gap-2 w-full">
-									<CardModule />
-									<CardModule />
-								</li>
+								<li className="flex flex-col items-center gap-2 w-full"></li>
 							</ul>
 						</div>
 					</div>

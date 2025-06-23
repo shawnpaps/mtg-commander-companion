@@ -37,7 +37,7 @@ app.get('/health', (req, res) => {
 // Game routes
 app.use('/api/games', require('./routes/games'));
 app.use('/api/scryfall', require('./routes/scryfall'));
-
+app.use('/api/cards', require('./routes/cards'));
 // Error handling middleware
 app.use((err, req, res, next) => {
 	console.error(err.stack);

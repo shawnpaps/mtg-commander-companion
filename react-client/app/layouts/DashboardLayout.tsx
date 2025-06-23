@@ -3,6 +3,7 @@ import type { Route } from './+types/DashboardLayout';
 import { Outlet, useParams } from 'react-router';
 import { BACKEND_URL } from '~/utils/backend';
 import BottomNavigation from '~/components/ui/BottomNavigation';
+import SearchModule from '~/components/ui/SearchModule';
 
 export function meta({}: Route.MetaArgs) {
 	return [
@@ -44,6 +45,11 @@ const DashboardLayout = ({ loaderData }: Route.ComponentProps) => {
 	console.log('Game', game);
 	return (
 		<main className="pt-16 p-4 container mx-auto flex flex-col items-center justify-center max-w-screen-md">
+			<SearchModule
+				player={game.players.find(
+					(player: any) => player.player_uuid === playerId
+				)}
+			/>
 			<Outlet context={{ game }} />
 
 			<BottomNavigation links={links} game={game} playerId={playerId} />

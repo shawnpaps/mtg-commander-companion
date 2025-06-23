@@ -8,7 +8,7 @@ const CommandZoneModule = ({
 	classNames,
 	textColor = 'text-emerald-50',
 	descriptionColor = 'text-emerald-100/80',
-	commanderName,
+	commanderData,
 }: {
 	title: string;
 	description: string;
@@ -16,7 +16,7 @@ const CommandZoneModule = ({
 	classNames: string;
 	textColor?: string;
 	descriptionColor?: string;
-	commanderName?: string;
+	commanderData?: any;
 }) => {
 	const [expanded, setExpanded] = useState(false);
 	return (
@@ -34,7 +34,7 @@ const CommandZoneModule = ({
 								Commander:
 							</span>
 							<h4 className="text-sm font-bold text-white/80">
-								{commanderName}
+								{commanderData.name}
 							</h4>
 						</div>
 					</div>
@@ -53,7 +53,7 @@ const CommandZoneModule = ({
 									<div className="flex flex-col items-start">
 										<span className="text-2xl font-bold">Commander</span>
 										<span className="text-sm font-bold text-white/80">
-											{commanderName}
+											{commanderData.name}
 										</span>
 									</div>
 									<div className="flex flex-col items-center">
@@ -62,14 +62,13 @@ const CommandZoneModule = ({
 									</div>
 								</div>
 								{/* Commander Card */}
-								<CardModule />
+								<CardModule cardData={commanderData} />
 							</div>
 							<div className="w-full flex gap-2 mt-4">
 								{/* opponent's commander cards*/}
 
-								<CardModule />
-								<CardModule />
-								<CardModule />
+								<CardModule cardData={commanderData} />
+								<CardModule cardData={commanderData} />
 							</div>
 						</div>
 					)}

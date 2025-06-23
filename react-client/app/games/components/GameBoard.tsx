@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
 	FaShieldAlt,
 	FaCog,
@@ -16,9 +16,31 @@ import CardModule from './gameboard/CardModule';
 import GameBoardModule from './gameboard/GameBoardModule';
 import LandModule from './gameboard/LandModule';
 import CommandZoneModule from './gameboard/CommandZoneModule';
+import { BACKEND_URL } from '~/utils/backend';
 
 const GameBoard = ({ player }: { player: any }) => {
-	console.log('Player', player);
+	const { commander } = player;
+	const [boardData, setBoardData] = useState({
+		player: player,
+		commander: 'N/A',
+		life_count: player.life_count,
+		graveyard: 0,
+		counters: 0,
+		lands: 0,
+	});
+
+	const fetchCommander = async () => {
+		const response = await fetch(`${BACKEND_URL}/api/cards/${commander}`);
+		const data = await response.json();
+		setBoardData({ ...boardData, commander: data });
+	};
+
+	useEffect(() => {
+		fetchCommander();
+	}, [commander]);
+
+	console.log('Board Data', boardData);
+
 	return (
 		<div className="grid grid-cols-3 gap-4 p-4 mb-32">
 			{/* Battlefield - Green for creatures and combat */}
@@ -53,7 +75,7 @@ const GameBoard = ({ player }: { player: any }) => {
 			{/* Commander Info - Purple for legendary creatures */}
 			<CommandZoneModule
 				title={`Command Zone`}
-				commanderName="Be'lakor, Dark Master"
+				commanderData={boardData.commander}
 				description="Commander damage and abilities"
 				icon={<FaCrown className="w-6 h-6 text-purple-100" />}
 				classNames="col-span-3 bg-gradient-to-br from-purple-700 via-violet-600 to-purple-800 rounded-2xl p-6 shadow-lg border border-purple-400/30"
