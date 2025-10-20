@@ -1,24 +1,19 @@
-const express = require('express');
-const router = express.Router();
-const supabase = require('../config/supabase');
-
-router.get('/:cardId', async (req, res) => {
-	try {
-		const { cardId } = req.params;
-		const { data: card } = await supabase
-			.from('cards')
-			.select('*')
-			.eq('id', cardId)
-			.single();
-
-		if (!card) {
-			return res.status(404).json({ error: 'Card not found' });
+export const cardRoutes = async function routes(fastify, options) {
+	const collection = fastify.mongo.db.collection('cards');
+	// Search for cards by name
+	fastify.get('/cards/search', async (request, reply) => {
+		const { name } = request.query;
+		if (!name) {
+			reply.code(400).send({ message: 'Name query parameter is required' });
+			return;
 		}
-
-		res.json(card);
-	} catch (error) {
-		res.status(500).json({ error: error.message });
-	}
-});
-
-module.exports = router;
+		const cards = await collection
+			.find({ name: { $regex: name, $options: 'i' } })
+			.toArray();
+		if (cards.length === 0) {
+			reply.code(404).send({ message: 'No cards found' });
+			return;
+		}
+		return cards;
+	});
+};
