@@ -46,8 +46,12 @@ export const playerRoutes = async function routes(fastify, options) {
 	// Create a new player
 	fastify.post('/players', { schema }, async (request, reply) => {
 		const newPlayer = request.body;
+		console.log(newPlayer);
 		const result = await collection.insertOne(newPlayer);
-		reply.code(201).send(result.ops[0]);
+
+		// Fetch the inserted document to return it
+		const insertedPlayer = await collection.findOne({ _id: result.insertedId });
+		reply.code(201).send(insertedPlayer);
 	});
 
 	// Update a player

@@ -1,9 +1,12 @@
 import React, { useState, useRef } from 'react';
 import { useFormik } from 'formik';
-import { searchForPlayer } from '../../utils/player-functions';
+import { searchForPlayer, createNewPlayer } from '../../utils/player-functions';
 import { createNewGame } from '../../utils/game-functions';
 
+import { useNavigate } from 'react-router';
+
 const CreateNewGameForm = () => {
+	const navigate = useNavigate();
 	const [searchPlayer, setSearchPlayer] = useState(false);
 	const [createPlayer, setCreatePlayer] = useState(false);
 	const formik = useFormik({
@@ -18,6 +21,7 @@ const CreateNewGameForm = () => {
 			alert(JSON.stringify(values, null, 2));
 			const result = await createNewGame(values);
 			console.log(result);
+			navigate(`/${result._id}/${values.playerId}`);
 		},
 	});
 
@@ -26,7 +30,7 @@ const CreateNewGameForm = () => {
 		setSearchPlayer(true);
 	};
 	const handleCreatePlayer = () => {
-		setCreatePlayer(false);
+		setCreatePlayer(true);
 		setSearchPlayer(false);
 	};
 	return (
@@ -64,6 +68,17 @@ const CreateNewGameForm = () => {
 							}}
 						/>
 					)}
+					{createPlayer && (
+						<CreateNewPlayer
+							onPlayerCreate={async (name, username) => {
+								const newPlayer = await createNewPlayer(name, username);
+								formik.setFieldValue('playerName', newPlayer.name);
+								formik.setFieldValue('playerId', newPlayer._id);
+								formik.setFieldValue('playerUsername', newPlayer.username);
+								setCreatePlayer(false);
+							}}
+						/>
+					)}
 				</div>
 			) : (
 				<div className="flex gap-2">
@@ -75,6 +90,7 @@ const CreateNewGameForm = () => {
 						I've Played Before
 					</button>
 					<button
+						onClick={handleCreatePlayer}
 						type="button"
 						id="create-new-player"
 						className="btn btn-accent btn-outline">
@@ -100,6 +116,8 @@ const CreateNewGameForm = () => {
 };
 
 export default CreateNewGameForm;
+
+//Search Player
 
 interface Player {
 	_id: string;
@@ -176,6 +194,44 @@ const SearchPlayer = ({ onPlayerSelect }: SearchPlayerProps) => {
 					</tbody>
 				</table>
 			</div>
+		</div>
+	);
+};
+
+//Create a Player
+
+interface CreateNewPlayerProps {
+	onPlayerCreate: (name: string, username: string) => void;
+}
+
+const CreateNewPlayer = ({ onPlayerCreate }: CreateNewPlayerProps) => {
+	const [name, setName] = useState('nicol bolas');
+	const [username, setUsername] = useState('nicol_bolas');
+
+	const handleCreatePlayer = (name: string, username: string) => {
+		onPlayerCreate(name, username);
+	};
+
+	return (
+		<div className="flex flex-col gap-2" id="create-player">
+			<input
+				className="input input-primary w-full"
+				type="text"
+				value={name}
+				onChange={(e) => setName(e.target.value)}
+			/>
+			<input
+				className="input input-primary w-full"
+				type="text"
+				value={username}
+				onChange={(e) => setUsername(e.target.value)}
+			/>
+			<button
+				type="button"
+				onClick={() => handleCreatePlayer(name, username)}
+				className="btn btn-accent block mt-2 ml-auto">
+				Create New Wizard
+			</button>
 		</div>
 	);
 };

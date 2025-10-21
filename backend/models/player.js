@@ -1,6 +1,6 @@
 export const playersSchema = {
 	type: 'object',
-	required: ['name', 'score'],
+	required: ['name', 'username'],
 	properties: {
 		name: { type: 'string' },
 		username: { type: 'string' },

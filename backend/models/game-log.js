@@ -5,6 +5,7 @@ export const gameLogSchema = {
 		gameId: { type: 'string' },
 		action: { type: 'string' },
 		type: { type: 'string' },
+		card: { type: 'object' },
 		timestamp: { type: 'string', format: 'date-time' },
 		playerId: { type: 'string' },
 	},
