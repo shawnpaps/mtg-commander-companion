@@ -25,7 +25,7 @@ const GameOverview = () => {
 				{gameInfo.players?.map((player) => (
 					<div
 						key={player.playerId}
-						className="card card-border tracking-tighter bg-base-100 col-span-1">
+						className="card card-border tracking-tighter glass col-span-1 backdrop-blur-sm">
 						<div className="card-body text-center">
 							<div>
 								<h1>{player.playerName}'s Life Total</h1>
