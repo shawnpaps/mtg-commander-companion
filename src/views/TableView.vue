@@ -12,6 +12,10 @@ defineProps<{
 
 <template>
   <div class="mx-auto w-full max-w-6xl px-3 py-4">
+    <p v-if="players.length" class="mb-3 px-1 text-[11px] text-zinc-600">
+      Tap any opponent's card to enlarge it. Long-press your own to act on it.
+    </p>
+
     <!-- One column on a phone; the extra screen gets a real table layout. -->
     <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
       <PlayerPod
