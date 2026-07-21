@@ -111,7 +111,7 @@ const TABS: Array<{ id: SubView; label: string; icon: string }> = [
         :players="players"
         :cards="cards"
       />
-      <Vitals v-else :game="game" :players="players" />
+      <Vitals v-else :game="game" :players="players" :cards="cards" />
     </div>
 
     <nav
