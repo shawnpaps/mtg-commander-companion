@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 import { animate } from "motion";
 import { api } from "@convex/_generated/api";
 import { useMutation } from "../lib/useConvex";
+import { imageVariant } from "../lib/scryfallImage";
 import type { Doc, Id } from "@convex/_generated/dataModel";
 
 const props = defineProps<{
@@ -26,8 +27,32 @@ const updateCounters = useMutation(api.cards.updateCounters);
 
 const root = ref<HTMLElement | null>(null);
 const menuOpen = ref(false);
+const zoomed = ref(false);
+const zoomEl = ref<HTMLElement | null>(null);
 let pressTimer: ReturnType<typeof setTimeout> | undefined;
 let longPressed = false;
+
+// Board thumbnails use the stored "normal" art; the reader wants the sharper
+// "large" variant. `highResFailed` drops back to the stored URL if the derived
+// one 404s for any reason.
+const highResFailed = ref(false);
+const readableImage = computed(() =>
+  highResFailed.value
+    ? props.card.imageUrl
+    : imageVariant(props.card.imageUrl, "large"),
+);
+
+async function openZoom() {
+  zoomed.value = true;
+  await new Promise((r) => requestAnimationFrame(() => r(null)));
+  if (zoomEl.value) {
+    animate(
+      zoomEl.value,
+      { opacity: [0, 1], scale: [0.9, 1] },
+      { duration: 0.2 },
+    );
+  }
+}
 
 const spring = { type: "spring", stiffness: 420, damping: 32 } as const;
 
@@ -152,7 +177,47 @@ function bumpCounter(type: string, delta: number) {
         <div
           class="max-h-[80vh] w-full overflow-y-auto rounded-t-2xl border-t border-board-edge bg-board-panel p-4 pb-8 sm:mx-auto sm:mb-8 sm:max-w-md sm:rounded-2xl sm:border"
         >
-          <p class="mb-4 truncate text-sm font-semibold">{{ card.name }}</p>
+          <!-- Readable preview: big enough to read rules text in the sheet,
+               tappable for a full-screen look. -->
+          <div class="mb-4 flex gap-3">
+            <button
+              type="button"
+              class="relative w-28 shrink-0 overflow-hidden rounded-lg border border-board-edge bg-board-bg sm:w-32"
+              style="aspect-ratio: 63 / 88"
+              :disabled="!card.imageUrl"
+              @click="openZoom"
+            >
+              <img
+                v-if="readableImage"
+                :src="readableImage"
+                :alt="card.name"
+                class="h-full w-full object-cover"
+                @error="highResFailed = true"
+              />
+              <span
+                v-else
+                class="flex h-full w-full items-center justify-center p-2 text-center text-[10px] text-zinc-500"
+              >
+                {{ card.name }}
+              </span>
+              <span
+                v-if="card.imageUrl"
+                class="absolute inset-x-0 bottom-0 bg-black/70 py-1 text-center text-[10px] text-zinc-300"
+              >
+                ⤢ Tap to enlarge
+              </span>
+            </button>
+
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-semibold leading-snug">{{ card.name }}</p>
+              <p v-if="card.typeLine" class="mt-1 text-[11px] text-zinc-500">
+                {{ card.typeLine }}
+              </p>
+              <p class="mt-2 text-[11px] text-zinc-600">
+                {{ card.tapped ? 'Tapped' : 'Untapped' }} · {{ card.zone }}
+              </p>
+            </div>
+          </div>
 
           <p class="mb-2 text-xs uppercase tracking-wide text-zinc-500">
             Move to
@@ -222,6 +287,29 @@ function bumpCounter(type: string, delta: number) {
             Close
           </button>
         </div>
+      </div>
+    </Teleport>
+
+    <!-- Full-screen reader. Sits above the action sheet so dismissing it
+         returns you to the menu rather than the board. -->
+    <Teleport to="body">
+      <div
+        v-if="zoomed"
+        class="fixed inset-0 z-60 flex items-center justify-center bg-black/90 p-4"
+        @click="zoomed = false"
+      >
+        <img
+          ref="zoomEl"
+          :src="readableImage"
+          :alt="card.name"
+          class="max-h-full w-auto max-w-full rounded-xl object-contain shadow-2xl"
+          @error="highResFailed = true"
+        />
+        <span
+          class="absolute inset-x-0 bottom-6 text-center text-[11px] text-zinc-500"
+        >
+          Tap anywhere to close
+        </span>
       </div>
     </Teleport>
   </div>
