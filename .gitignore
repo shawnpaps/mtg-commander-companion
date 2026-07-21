@@ -5,4 +5,7 @@ dist/
 .env.local
 .env*.local
 .vite/
-convex/_generated/
+
+# convex/_generated is deliberately committed: the frontend imports it, so a
+# clean checkout (Vercel, CI) can't build without it. `convex dev` and
+# `convex deploy` keep it in sync.
