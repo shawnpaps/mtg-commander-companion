@@ -120,6 +120,7 @@ patch — the minimal change needed to revert it:
 | Mutation | Inverse |
 | --- | --- |
 | `castCard` | `deleteCard` with the created id |
+| `removeCard` | `restoreCard` with the card's fields (new id on restore) |
 | `moveCard` | prior `zone`, `position`, `tapped` |
 | `toggleTap` / `toggleFlip` | prior boolean |
 | `setController` | prior `controllerId` |

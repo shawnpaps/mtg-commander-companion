@@ -10,6 +10,14 @@ export type InversePatch =
   | { kind: "deleteCard"; cardId: Id<"cards"> }
   | { kind: "patchCard"; cardId: Id<"cards">; patch: Record<string, unknown> }
   | { kind: "patchPlayer"; playerId: Id<"players">; patch: Record<string, unknown> }
+  // Undo of a removal. Convex can't resurrect a document id, so this re-inserts
+  // the card's fields and gets a fresh id; `commanderOf` re-points the player at
+  // it when the removed card was their commander.
+  | {
+      kind: "restoreCard";
+      card: Record<string, unknown>;
+      commanderOf?: Id<"players">;
+    }
   | null;
 
 export async function applyInverse(ctx: MutationCtx, inverse: InversePatch) {
@@ -30,6 +38,16 @@ export async function applyInverse(ctx: MutationCtx, inverse: InversePatch) {
       const existing = await ctx.db.get(inverse.playerId);
       if (!existing) return false;
       await ctx.db.patch(inverse.playerId, inverse.patch as never);
+      return true;
+    }
+    case "restoreCard": {
+      const cardId = await ctx.db.insert("cards", inverse.card as never);
+      if (inverse.commanderOf) {
+        const player = await ctx.db.get(inverse.commanderOf);
+        if (player) {
+          await ctx.db.patch(inverse.commanderOf, { commanderCardId: cardId });
+        }
+      }
       return true;
     }
     default:
