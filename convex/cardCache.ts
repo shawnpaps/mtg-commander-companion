@@ -49,11 +49,33 @@ export const getByScryfallId = query({
   },
 });
 
-export const cacheSize = query({
+/** Called by the seed after each batch of pages. */
+export const recordSeedProgress = internalMutation({
+  args: { processed: v.number(), done: v.boolean() },
+  handler: async (ctx, { processed, done }) => {
+    const existing = await ctx.db.query("seedState").first();
+    const patch = { processed, done, updatedAt: Date.now() };
+    if (existing) await ctx.db.patch(existing._id, patch);
+    else await ctx.db.insert("seedState", patch);
+  },
+});
+
+/**
+ * Seed status. `processed` is reported by the seed itself rather than counted —
+ * cardCache rows are too large to collect() and Convex has no cheap count.
+ */
+export const seedProgress = query({
   args: {},
   handler: async (ctx) => {
-    // Bounded probe — enough to tell the UI whether the seed has run at all.
+    const state = await ctx.db.query("seedState").first();
+    // A non-empty cache with no marker means cards arrived via lazy backfill or
+    // search rather than a full seed run.
     const sample = await ctx.db.query("cardCache").take(1);
-    return { seeded: sample.length > 0 };
+    return {
+      hasCards: sample.length > 0,
+      processed: state?.processed ?? 0,
+      done: state?.done ?? false,
+      updatedAt: state?.updatedAt ?? null,
+    };
   },
 });

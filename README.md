@@ -57,7 +57,11 @@ creates it with a placeholder name and schedules `backfillCard`, which fetches
 the single card from Scryfall and patches the name and art in place. The card
 search box queries Scryfall live and warms the cache with whatever it returns.
 
-Check status with `npx convex run cardCache:cacheSize '{}'`.
+Check status with `npx convex run cardCache:seedProgress '{}'` (add `--prod` for
+production). It reports `processed`, `done`, and `hasCards` — the last one
+distinguishes "a real seed ran" from "a few cards arrived via search or lazy
+backfill". The count is self-reported by the seed rather than counted, because
+`cardCache` rows are too large to `collect()` and Convex has no cheap `COUNT(*)`.
 
 ## How it fits together
 

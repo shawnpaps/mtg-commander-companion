@@ -94,6 +94,15 @@ export default defineSchema({
     .index("by_game", ["gameId"])
     .index("by_game_active", ["gameId", "undone"]),
 
+  // Single-row progress marker for the paginated Scryfall seed. Convex has no
+  // cheap COUNT(*) and cardCache rows are far too large to collect(), so the
+  // seed reports its own progress here.
+  seedState: defineTable({
+    processed: v.number(),
+    done: v.boolean(),
+    updatedAt: v.number(),
+  }),
+
   cardCache: defineTable({
     scryfallId: v.string(),
     name: v.string(),

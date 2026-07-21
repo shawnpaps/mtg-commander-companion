@@ -99,6 +99,11 @@ export const seedBulkCards = action({
       url = body.has_more ? body.next_page : undefined;
     }
 
+    await ctx.runMutation(internal.cardCache.recordSeedProgress, {
+      processed,
+      done: !url,
+    });
+
     if (url) {
       await ctx.scheduler.runAfter(0, internal.scryfall.continueSeed, {
         pageUrl: url,
