@@ -34,6 +34,37 @@ Run `npm run dev` and `npx convex dev` in two terminals during development.
 | `npm run convex` | `convex dev` — push functions, watch for changes |
 | `npm run seed` | Populate the Scryfall card cache (see below) |
 
+## Deploying
+
+The frontend and the Convex backend deploy separately.
+
+**Backend** — `npx convex deploy` pushes functions, indexes and schema to the
+project's production deployment (`fantastic-mink-68`).
+
+**Frontend (Vercel)** — the default Vite preset works; the only required setting
+is an environment variable:
+
+```
+VITE_CONVEX_URL=https://fantastic-mink-68.convex.cloud
+```
+
+Without it the build still succeeds, but the app throws
+`VITE_CONVEX_URL is not set` on load. With it, the URL is inlined at build time —
+verify with `grep fantastic-mink dist/assets/*.js`.
+
+`convex/_generated/` is **committed on purpose**. `src/` imports it, so a clean
+checkout can't build without it. Note that `npx convex deploy --cmd 'npm run
+build'` does not solve this on its own: per its own help text it runs the command
+(step 1) *before* regenerating code (step 3), so the build would still hit a
+missing directory. If you do want Vercel to deploy the backend too, set
+`CONVEX_DEPLOY_KEY` in Vercel and use:
+
+```
+npx convex deploy --cmd 'npm run build' --cmd-url-env-var-name VITE_CONVEX_URL
+```
+
+which then also supplies `VITE_CONVEX_URL` automatically.
+
 ## Seeding the card cache
 
 ```bash
