@@ -56,7 +56,8 @@ export default defineSchema({
     connected: v.boolean(),
   })
     .index("by_game", ["gameId"])
-    .index("by_game_session", ["gameId", "sessionId"]),
+    .index("by_game_session", ["gameId", "sessionId"])
+    .index("by_session", ["sessionId"]),
 
   cards: defineTable({
     gameId: v.id("games"),
