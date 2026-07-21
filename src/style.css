@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --color-board-bg: #0a0a0f;
+  --color-board-panel: #14141c;
+  --color-board-edge: #262633;
+  --color-board-accent: #a78bfa;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  /* Phone-first: no rubber-banding, respect the notch. */
+  overscroll-behavior-y: none;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Long-press menus and rapid tapping shouldn't trigger text selection. */
+.no-touch-callout {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
