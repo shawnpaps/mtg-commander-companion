@@ -43,6 +43,8 @@ const readableImage = computed(() =>
 );
 
 async function openZoom() {
+  // Nothing to read on a card still waiting for its Scryfall backfill.
+  if (!props.card.imageUrl) return;
   zoomed.value = true;
   await new Promise((r) => requestAnimationFrame(() => r(null)));
   if (zoomEl.value) {
@@ -80,7 +82,13 @@ function onTap() {
     longPressed = false;
     return;
   }
-  if (!props.interactive) return;
+  // `interactive` governs control, not visibility. An opponent's card can't be
+  // tapped or moved, so a plain tap goes straight to the reader — you still
+  // need to see what they're playing.
+  if (!props.interactive) {
+    openZoom();
+    return;
+  }
   toggleTap({ cardId: props.card._id });
 }
 
@@ -305,11 +313,28 @@ function bumpCounter(type: string, delta: number) {
           class="max-h-full w-auto max-w-full rounded-xl object-contain shadow-2xl"
           @error="highResFailed = true"
         />
-        <span
-          class="absolute inset-x-0 bottom-6 text-center text-[11px] text-zinc-500"
+
+        <!-- State the art can't show: counters and whether it's tapped. -->
+        <div
+          class="absolute inset-x-0 bottom-5 flex flex-wrap items-center justify-center gap-2 px-4"
         >
-          Tap anywhere to close
-        </span>
+          <span
+            v-if="card.tapped"
+            class="rounded-full bg-amber-400/15 px-2.5 py-1 text-[11px] text-amber-300"
+          >
+            Tapped
+          </span>
+          <span
+            v-for="counter in card.counters"
+            :key="counter.type"
+            class="rounded-full bg-board-accent/15 px-2.5 py-1 text-[11px] text-board-accent"
+          >
+            {{ counter.type }} {{ counter.count > 0 ? '+' : '' }}{{ counter.count }}
+          </span>
+          <span class="w-full text-center text-[11px] text-zinc-500">
+            Tap anywhere to close
+          </span>
+        </div>
       </div>
     </Teleport>
   </div>
