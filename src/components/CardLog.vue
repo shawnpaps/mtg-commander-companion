@@ -39,6 +39,8 @@ function describe(entry: Doc<"gameLog">) {
       return `${who} chose ${p.name} as commander`;
     case "card.moved":
       return `${who} moved ${p.name} to ${p.to}`;
+    case "card.removed":
+      return `${who} removed ${p.name}`;
     case "card.tapped":
       return `${who} tapped ${p.name}`;
     case "card.untapped":

@@ -279,6 +279,45 @@ export const updateCounters = mutation({
   },
 });
 
+/**
+ * Remove a card from the game entirely — the escape hatch for casting the wrong
+ * card. Distinct from moveCard: this takes the card off the table rather than
+ * sending it to a zone.
+ *
+ * Undoable: the inverse carries the card's fields so it can be re-inserted. The
+ * restored card gets a new id, so any older log entry whose inverse referenced
+ * the old id is a no-op on undo, which applyInverse already tolerates.
+ */
+export const removeCard = mutation({
+  args: { cardId: v.id("cards") },
+  handler: async (ctx, { cardId }) => {
+    const card = await ctx.db.get(cardId);
+    if (!card) throw new Error("Card not found");
+
+    // Dropping a commander would leave players.commanderCardId dangling.
+    const owner = await ctx.db.get(card.ownerId);
+    const wasCommander = owner?.commanderCardId === cardId;
+    if (wasCommander) {
+      await ctx.db.patch(card.ownerId, { commanderCardId: undefined });
+    }
+
+    const { _id, _creationTime, ...fields } = card;
+    await ctx.db.delete(cardId);
+
+    await writeLog(ctx, {
+      gameId: card.gameId,
+      actorId: card.controllerId,
+      action: "card.removed",
+      payload: { name: card.name, zone: card.zone },
+      inverse: {
+        kind: "restoreCard",
+        card: fields,
+        commanderOf: wasCommander ? card.ownerId : undefined,
+      },
+    });
+  },
+});
+
 /** Fills in name/art/type once a lazy Scryfall fetch resolves. */
 export const applyCardData = internalMutation({
   args: {

@@ -24,9 +24,11 @@ const toggleTap = useMutation(api.cards.toggleTap);
 const moveCard = useMutation(api.cards.moveCard);
 const setController = useMutation(api.cards.setController);
 const updateCounters = useMutation(api.cards.updateCounters);
+const removeCard = useMutation(api.cards.removeCard);
 
 const root = ref<HTMLElement | null>(null);
 const menuOpen = ref(false);
+const confirmingRemove = ref(false);
 const zoomed = ref(false);
 const zoomEl = ref<HTMLElement | null>(null);
 let pressTimer: ReturnType<typeof setTimeout> | undefined;
@@ -66,6 +68,11 @@ onMounted(() => {
     { opacity: [0, 1], scale: [0.8, 1], rotate: props.card.tapped ? 90 : 0 },
     { duration: 0.28 },
   );
+});
+
+// Never leave the remove button armed for the next time the sheet opens.
+watch(menuOpen, (open) => {
+  if (!open) confirmingRemove.value = false;
 });
 
 // The rotation follows Convex state, not the local click, so every device at
@@ -119,6 +126,21 @@ async function moveTo(zone: (typeof ZONES)[number]["id"]) {
 function giveControl(to: Id<"players">) {
   menuOpen.value = false;
   setController({ cardId: props.card._id, controllerId: to });
+}
+
+async function confirmRemove() {
+  // Two taps: a destructive action shouldn't be reachable by the same mistap
+  // it exists to correct.
+  if (!confirmingRemove.value) {
+    confirmingRemove.value = true;
+    return;
+  }
+  menuOpen.value = false;
+  confirmingRemove.value = false;
+  if (root.value) {
+    await animate(root.value, { opacity: 0, scale: 0.85 }, { duration: 0.18 });
+  }
+  await removeCard({ cardId: props.card._id });
 }
 
 function bumpCounter(type: string, delta: number) {
@@ -288,8 +310,29 @@ function bumpCounter(type: string, delta: number) {
             </button>
           </div>
 
+          <div class="mt-5 border-t border-board-edge pt-4">
+            <button
+              class="w-full rounded-xl border py-3 text-sm transition-colors"
+              :class="
+                confirmingRemove
+                  ? 'border-red-500 bg-red-500/15 text-red-300'
+                  : 'border-red-500/40 text-red-400/90'
+              "
+              @click="confirmRemove"
+            >
+              {{
+                confirmingRemove
+                  ? 'Tap again to remove permanently'
+                  : 'Remove card from game'
+              }}
+            </button>
+            <p v-if="confirmingRemove" class="mt-2 text-center text-[11px] text-zinc-500">
+              Undo will bring it back.
+            </p>
+          </div>
+
           <button
-            class="mt-5 w-full rounded-xl border border-board-edge py-3 text-sm text-zinc-400"
+            class="mt-3 w-full rounded-xl border border-board-edge py-3 text-sm text-zinc-400"
             @click="menuOpen = false"
           >
             Close
