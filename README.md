@@ -92,8 +92,8 @@ patch — the minimal change needed to revert it:
 | `updateLife` / `setPoison` | prior value |
 | `setCommanderDmg` | prior `commanderDmg` array |
 
-Events that can't be reverted (`player.joined`, `turn.passed`, `game.created`)
-store no inverse. `undoLastAction` walks back through the `by_game_active` index
+Events that can't be reverted (`player.joined`, `turn.passed`, `game.created`,
+`commander.set`) store no inverse. `undoLastAction` walks back through the `by_game_active` index
 to the newest entry that both is `undone: false` and carries an inverse, replays
 it, and marks the entry undone. Because `getLog` reads only `undone: false`
 entries, undone actions drop straight out of the live feed.
@@ -106,7 +106,8 @@ convex/
   sessions.ts     getOrCreateSession
   games.ts        createGame, joinGame, startGame, nextTurn, undoLastAction, getGame
   players.ts      updateLife, setPoison, setCommanderDmg
-  cards.ts        castCard, moveCard, toggleTap, setController, updateCounters, getPlayerBoard
+  cards.ts        castCard, setCommander, moveCard, toggleTap, setController,
+                  updateCounters, getPlayerBoard
   log.ts          getLog
   cardCache.ts    upsert + lookup
   scryfall.ts     seedBulkCards, fetchCard, backfillCard, searchCards  (actions — all external fetch lives here)
@@ -114,9 +115,33 @@ convex/
 src/
   lib/            convex client, session token, store, query composables
   views/          LobbyView, GameView, MyBoard, TableView, Vitals
-  components/     Card, PlayerPod, LifeCounter, CommanderDamageGrid,
-                  CardLog, ShareGameCode, UndoButton, CardSearch
+  components/     Card, PlayerPod, LifeCounter, CommanderDamageGrid, CardLog,
+                  ShareGameCode, UndoButton, CardSearch, CommanderPicker
 ```
+
+### Zones and the battlefield
+
+Cards live in one of `battlefield`, `graveyard`, `exile`, `command`, or
+`library`. There's deliberately no hand zone — players hold physical cards, so
+the app only tracks what's public at the table.
+
+The battlefield is grouped into **Creatures, Planeswalkers, Artifacts,
+Enchantments, Lands, Other**, derived from the Scryfall `type_line` stored on
+each card (`src/lib/cardTypes.ts`). Order of the checks matters: an Artifact
+Creature files under creatures, and an Artifact Land under lands. A card cast
+before its Scryfall backfill lands sits in "Other" until the type arrives, then
+moves on its own — the grouping is reactive.
+
+### Commanders
+
+Each player picks their commander from a search restricted to Scryfall's
+`is:commander` (legendary creatures plus Backgrounds and the handful of
+planeswalkers that can helm a deck). The commander is created as a real card in
+the `command` zone, so it taps, moves and takes counters like anything else;
+`players.commanderCardId` just points at it. Choosing again replaces the
+previous card rather than stacking up a second one.
+
+The picker appears at the top of **My Board** in Commander games only.
 
 `GameView` hosts three sub-views behind a bottom tab bar: **My Board** (your
 zones, cast new cards), **Table** (every player's pod), and **Vitals** (life,

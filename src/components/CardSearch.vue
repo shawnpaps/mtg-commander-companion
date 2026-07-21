@@ -1,22 +1,33 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { api } from "@convex/_generated/api";
-import { useAction, useMutation } from "../lib/useConvex";
-import type { Id } from "@convex/_generated/dataModel";
+import { useAction } from "../lib/useConvex";
 
-const props = defineProps<{
-  gameId: Id<"games">;
-  playerId: Id<"players"> | null;
-}>();
+export type SearchResult = {
+  scryfallId: string;
+  name: string;
+  typeLine?: string;
+  imageUrl?: string;
+};
 
-type Result = { scryfallId: string; name: string; imageUrl?: string };
+const props = withDefaults(
+  defineProps<{
+    label: string;
+    placeholder?: string;
+    commanderOnly?: boolean;
+    disabled?: boolean;
+    variant?: "dashed" | "solid";
+  }>(),
+  { variant: "dashed" },
+);
+
+const emit = defineEmits<{ select: [result: SearchResult] }>();
 
 const searchCards = useAction(api.scryfall.searchCards);
-const castCard = useMutation(api.cards.castCard);
 
 const open = ref(false);
 const term = ref("");
-const results = ref<Result[]>([]);
+const results = ref<SearchResult[]>([]);
 const loading = ref(false);
 
 let debounce: ReturnType<typeof setTimeout> | undefined;
@@ -33,7 +44,10 @@ watch(term, (value) => {
     const mine = ++seq;
     loading.value = true;
     try {
-      const found = await searchCards({ query: value.trim() });
+      const found = await searchCards({
+        query: value.trim(),
+        commanderOnly: props.commanderOnly,
+      });
       if (mine === seq) results.value = found;
     } finally {
       if (mine === seq) loading.value = false;
@@ -41,27 +55,27 @@ watch(term, (value) => {
   }, 300);
 });
 
-async function cast(result: Result) {
-  if (!props.playerId) return;
+function choose(result: SearchResult) {
   open.value = false;
   term.value = "";
   results.value = [];
-  await castCard({
-    gameId: props.gameId,
-    playerId: props.playerId,
-    scryfallId: result.scryfallId,
-  });
+  emit("select", result);
 }
 </script>
 
 <template>
   <div>
     <button
-      class="w-full rounded-xl border border-dashed border-board-edge py-3 text-sm text-zinc-500 active:bg-board-panel"
-      :disabled="!playerId"
+      class="w-full rounded-xl py-3 text-sm transition-colors active:bg-board-panel"
+      :class="
+        variant === 'solid'
+          ? 'bg-board-accent font-semibold text-zinc-950'
+          : 'border border-dashed border-board-edge text-zinc-500'
+      "
+      :disabled="disabled"
       @click="open = true"
     >
-      + Cast a card
+      {{ label }}
     </button>
 
     <Teleport to="body">
@@ -71,7 +85,7 @@ async function cast(result: Result) {
             v-model="term"
             type="search"
             autofocus
-            placeholder="Search Scryfall…"
+            :placeholder="placeholder ?? 'Search Scryfall…'"
             class="flex-1 rounded-xl border border-board-edge bg-board-panel px-4 py-3 text-base outline-none focus:border-board-accent"
           />
           <button class="px-3 text-sm text-zinc-400" @click="open = false">
@@ -93,7 +107,7 @@ async function cast(result: Result) {
             <li v-for="result in results" :key="result.scryfallId">
               <button
                 class="flex w-full items-center gap-3 rounded-xl p-2 text-left active:bg-board-panel"
-                @click="cast(result)"
+                @click="choose(result)"
               >
                 <img
                   v-if="result.imageUrl"
@@ -105,7 +119,15 @@ async function cast(result: Result) {
                   v-else
                   class="h-16 w-12 shrink-0 rounded bg-board-panel"
                 ></span>
-                <span class="text-sm">{{ result.name }}</span>
+                <span class="min-w-0">
+                  <span class="block truncate text-sm">{{ result.name }}</span>
+                  <span
+                    v-if="result.typeLine"
+                    class="block truncate text-[11px] text-zinc-600"
+                  >
+                    {{ result.typeLine }}
+                  </span>
+                </span>
               </button>
             </li>
           </ul>

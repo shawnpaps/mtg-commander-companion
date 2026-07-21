@@ -17,13 +17,21 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 type ScryfallCard = {
   id: string;
   name: string;
+  type_line?: string;
   image_uris?: Record<string, string>;
-  card_faces?: Array<{ image_uris?: Record<string, string> }>;
+  card_faces?: Array<{
+    image_uris?: Record<string, string>;
+    type_line?: string;
+  }>;
 };
 
 function imagesFor(card: ScryfallCard) {
   // Double-faced cards carry art on the faces rather than the top level.
   return card.image_uris ?? card.card_faces?.[0]?.image_uris ?? {};
+}
+
+function typeLineFor(card: ScryfallCard) {
+  return card.type_line ?? card.card_faces?.[0]?.type_line;
 }
 
 function toCacheRow(card: ScryfallCard) {
@@ -158,6 +166,7 @@ export const backfillCard = internalAction({
       cardId,
       name: card.name,
       imageUrl: images.normal ?? images.large ?? images.small,
+      typeLine: typeLineFor(card),
     });
   },
 });
@@ -167,13 +176,17 @@ export const backfillCard = internalAction({
  * bulk seed has finished, and warms the cache with whatever it returns.
  */
 export const searchCards = action({
-  args: { query: v.string() },
-  handler: async (ctx, { query }) => {
+  args: { query: v.string(), commanderOnly: v.optional(v.boolean()) },
+  handler: async (ctx, { query, commanderOnly }) => {
     if (query.trim().length < 2) return [];
+
+    // `is:commander` covers legendary creatures plus the oddities that can also
+    // helm a deck (Backgrounds, "can be your commander" planeswalkers, etc).
+    const q = commanderOnly ? `${query} is:commander` : query;
 
     await sleep(RATE_LIMIT_MS);
     const res = await fetch(
-      `${SCRYFALL}/cards/search?q=${encodeURIComponent(query)}&unique=cards&order=name`,
+      `${SCRYFALL}/cards/search?q=${encodeURIComponent(q)}&unique=cards&order=name`,
       { headers: HEADERS },
     );
     if (!res.ok) return [];
@@ -189,6 +202,7 @@ export const searchCards = action({
     return cards.map((c) => ({
       scryfallId: c.id,
       name: c.name,
+      typeLine: typeLineFor(c),
       imageUrl: imagesFor(c).small ?? imagesFor(c).normal,
     }));
   },

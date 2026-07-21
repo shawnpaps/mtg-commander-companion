@@ -10,7 +10,6 @@ export const formatValidator = v.union(
 
 export const zoneValidator = v.union(
   v.literal("battlefield"),
-  v.literal("hand"),
   v.literal("graveyard"),
   v.literal("exile"),
   v.literal("command"),
@@ -52,6 +51,8 @@ export default defineSchema({
     commanderDmg: v.array(
       v.object({ fromPlayerId: v.id("players"), amount: v.number() }),
     ),
+    // Points at this player's commander, which lives as a card in the command zone.
+    commanderCardId: v.optional(v.id("cards")),
     connected: v.boolean(),
   })
     .index("by_game", ["gameId"])
@@ -65,6 +66,10 @@ export default defineSchema({
     scryfallId: v.string(),
     name: v.string(),
     imageUrl: v.optional(v.string()),
+    // Scryfall type_line, e.g. "Legendary Artifact Creature — Golem". Drives the
+    // battlefield grouping; optional because a card can be cast before the
+    // Scryfall backfill resolves.
+    typeLine: v.optional(v.string()),
     zone: zoneValidator,
     tapped: v.boolean(),
     flipped: v.boolean(),

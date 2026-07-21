@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import Card from "./Card.vue";
 import LifeCounter from "./LifeCounter.vue";
+import { groupCards } from "../lib/cardTypes";
 import type { Doc } from "@convex/_generated/dataModel";
 
 const props = defineProps<{
@@ -12,16 +13,25 @@ const props = defineProps<{
   isTurn?: boolean;
 }>();
 
-const battlefield = computed(() =>
-  props.cards
-    .filter((c) => c.controllerId === props.player._id && c.zone === "battlefield")
-    .sort((a, b) => a.position - b.position),
+const sections = computed(() =>
+  groupCards(
+    props.cards.filter(
+      (c) => c.controllerId === props.player._id && c.zone === "battlefield",
+    ),
+  ),
+);
+
+const battlefieldCount = computed(() =>
+  sections.value.reduce((total, s) => total + s.cards.length, 0),
+);
+
+const commander = computed(
+  () => props.cards.find((c) => c._id === props.player.commanderCardId) ?? null,
 );
 
 const counts = computed(() => {
   const mine = props.cards.filter((c) => c.controllerId === props.player._id);
   return {
-    hand: mine.filter((c) => c.zone === "hand").length,
     graveyard: mine.filter((c) => c.zone === "graveyard").length,
     exile: mine.filter((c) => c.zone === "exile").length,
   };
@@ -58,23 +68,34 @@ const counts = computed(() => {
 
     <LifeCounter v-if="isMe" :player="player" compact class="mb-3" />
 
+    <p
+      v-if="commander"
+      class="mb-2 truncate text-[11px] text-zinc-500"
+      :title="commander.name"
+    >
+      <span class="text-zinc-600">⚔</span> {{ commander.name }}
+    </p>
+
     <div class="mb-2 flex gap-3 text-[10px] uppercase tracking-wide text-zinc-600">
-      <span>hand {{ counts.hand }}</span>
       <span>gy {{ counts.graveyard }}</span>
       <span>exile {{ counts.exile }}</span>
     </div>
 
-    <div
-      v-if="battlefield.length"
-      class="grid grid-cols-4 gap-1.5 sm:grid-cols-6 lg:grid-cols-8"
-    >
-      <Card
-        v-for="card in battlefield"
-        :key="card._id"
-        :card="card"
-        :players="players"
-        :interactive="isMe"
-      />
+    <div v-if="battlefieldCount" class="flex flex-col gap-2.5">
+      <div v-for="section in sections" :key="section.group">
+        <h4 class="mb-1 text-[10px] uppercase tracking-wide text-zinc-600">
+          {{ section.group }}
+        </h4>
+        <div class="grid grid-cols-4 gap-1.5 sm:grid-cols-6 lg:grid-cols-8">
+          <Card
+            v-for="card in section.cards"
+            :key="card._id"
+            :card="card"
+            :players="players"
+            :interactive="isMe"
+          />
+        </div>
+      </div>
     </div>
     <p v-else class="py-3 text-center text-[11px] text-zinc-700">
       Empty battlefield

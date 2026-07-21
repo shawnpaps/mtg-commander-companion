@@ -13,7 +13,6 @@ const props = defineProps<{
 
 const ZONES = [
   { id: "battlefield", label: "Battlefield" },
-  { id: "hand", label: "Hand" },
   { id: "graveyard", label: "Graveyard" },
   { id: "exile", label: "Exile" },
   { id: "command", label: "Command Zone" },

@@ -35,6 +35,8 @@ function describe(entry: Doc<"gameLog">) {
       return `Turn ${p.turnNumber} — ${who}`;
     case "card.cast":
       return `${who} cast ${p.name}`;
+    case "commander.set":
+      return `${who} chose ${p.name} as commander`;
     case "card.moved":
       return `${who} moved ${p.name} to ${p.to}`;
     case "card.tapped":

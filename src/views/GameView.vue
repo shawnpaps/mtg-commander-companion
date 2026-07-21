@@ -101,6 +101,7 @@ const TABS: Array<{ id: SubView; label: string; icon: string }> = [
       <MyBoard
         v-if="subView === 'board'"
         :game-id="game._id"
+        :format="game.format"
         :players="players"
         :cards="cards"
       />

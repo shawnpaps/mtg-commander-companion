@@ -1,4 +1,9 @@
-import { mutation, internalMutation, query } from "./_generated/server";
+import {
+  mutation,
+  internalMutation,
+  query,
+  type MutationCtx,
+} from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { zoneValidator } from "./schema";
@@ -15,10 +20,38 @@ function pickImage(imageUris: unknown): string | undefined {
   return uris.normal ?? uris.large ?? uris.small ?? uris.png ?? undefined;
 }
 
+type CardFacts = { name: string; imageUrl?: string; typeLine?: string };
+
+/**
+ * Resolve display data for a Scryfall id from the cache. Returns placeholders on
+ * a miss — the caller schedules a backfill rather than blocking the game on it.
+ */
+async function factsFor(
+  ctx: { db: MutationCtx["db"] },
+  scryfallId: string,
+): Promise<{ facts: CardFacts; cached: boolean }> {
+  const row = await ctx.db
+    .query("cardCache")
+    .withIndex("by_scryfall", (q) => q.eq("scryfallId", scryfallId))
+    .unique();
+
+  if (!row) return { facts: { name: "Unknown Card" }, cached: false };
+
+  const oracle = (row.oracleData ?? {}) as { type_line?: string };
+  return {
+    facts: {
+      name: row.name,
+      imageUrl: pickImage(row.imageUris),
+      typeLine: oracle.type_line,
+    },
+    cached: true,
+  };
+}
+
 /**
  * Put a card onto the battlefield. If the cache hasn't been seeded yet we still
  * create the card with placeholder text and schedule a lazy Scryfall fetch to
- * fill in the name and art — the game never blocks on the cache.
+ * fill in the name, art and type — the game never blocks on the cache.
  */
 export const castCard = mutation({
   args: {
@@ -27,10 +60,7 @@ export const castCard = mutation({
     scryfallId: v.string(),
   },
   handler: async (ctx, { gameId, playerId, scryfallId }) => {
-    const cached = await ctx.db
-      .query("cardCache")
-      .withIndex("by_scryfall", (q) => q.eq("scryfallId", scryfallId))
-      .unique();
+    const { facts, cached } = await factsFor(ctx, scryfallId);
 
     const siblings = await ctx.db
       .query("cards")
@@ -44,8 +74,9 @@ export const castCard = mutation({
       ownerId: playerId,
       controllerId: playerId,
       scryfallId,
-      name: cached?.name ?? "Unknown Card",
-      imageUrl: cached ? pickImage(cached.imageUris) : undefined,
+      name: facts.name,
+      imageUrl: facts.imageUrl,
+      typeLine: facts.typeLine,
       zone: "battlefield",
       tapped: false,
       flipped: false,
@@ -64,8 +95,67 @@ export const castCard = mutation({
       gameId,
       actorId: playerId,
       action: "card.cast",
-      payload: { cardId, name: cached?.name ?? "Unknown Card" },
+      payload: { cardId, name: facts.name },
       inverse: { kind: "deleteCard", cardId },
+    });
+
+    return cardId;
+  },
+});
+
+/**
+ * Assign this player's commander. The commander lives as a real card in the
+ * command zone so it can be cast, tapped and moved like anything else; the
+ * player row just keeps a pointer to it. Re-assigning replaces the previous
+ * commander card outright.
+ */
+export const setCommander = mutation({
+  args: {
+    gameId: v.id("games"),
+    playerId: v.id("players"),
+    scryfallId: v.string(),
+  },
+  handler: async (ctx, { gameId, playerId, scryfallId }) => {
+    const player = await ctx.db.get(playerId);
+    if (!player) throw new Error("Player not found");
+
+    if (player.commanderCardId) {
+      const previous = await ctx.db.get(player.commanderCardId);
+      if (previous) await ctx.db.delete(player.commanderCardId);
+    }
+
+    const { facts, cached } = await factsFor(ctx, scryfallId);
+
+    const cardId = await ctx.db.insert("cards", {
+      gameId,
+      ownerId: playerId,
+      controllerId: playerId,
+      scryfallId,
+      name: facts.name,
+      imageUrl: facts.imageUrl,
+      typeLine: facts.typeLine,
+      zone: "command",
+      tapped: false,
+      flipped: false,
+      counters: [],
+      position: 0,
+    });
+    await ctx.db.patch(playerId, { commanderCardId: cardId });
+
+    if (!cached) {
+      await ctx.scheduler.runAfter(0, internal.scryfall.backfillCard, {
+        scryfallId,
+        cardId,
+      });
+    }
+
+    await writeLog(ctx, {
+      gameId,
+      actorId: playerId,
+      action: "commander.set",
+      payload: { cardId, name: facts.name },
+      // Undoing a commander choice would strand the pointer; pick again instead.
+      inverse: null,
     });
 
     return cardId;
@@ -189,17 +279,18 @@ export const updateCounters = mutation({
   },
 });
 
-/** Fills in name/art once a lazy Scryfall fetch resolves. */
+/** Fills in name/art/type once a lazy Scryfall fetch resolves. */
 export const applyCardData = internalMutation({
   args: {
     cardId: v.id("cards"),
     name: v.string(),
     imageUrl: v.optional(v.string()),
+    typeLine: v.optional(v.string()),
   },
-  handler: async (ctx, { cardId, name, imageUrl }) => {
+  handler: async (ctx, { cardId, name, imageUrl, typeLine }) => {
     const card = await ctx.db.get(cardId);
     if (!card) return;
-    await ctx.db.patch(cardId, { name, imageUrl });
+    await ctx.db.patch(cardId, { name, imageUrl, typeLine });
   },
 });
 
