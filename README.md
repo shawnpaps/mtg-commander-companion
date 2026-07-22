@@ -65,6 +65,21 @@ npx convex deploy --cmd 'npm run build' --cmd-url-env-var-name VITE_CONVEX_URL
 
 which then also supplies `VITE_CONVEX_URL` automatically.
 
+## Link previews
+
+`index.html` carries the Open Graph / Twitter card tags. Because those need
+absolute URLs, it uses a `%SITE_URL%` placeholder that `vite.config.ts` stamps at
+build time — set `SITE_URL` to the deployed origin (no trailing slash) alongside
+`VITE_CONVEX_URL`, or the fallback in `vite.config.ts` is used and previews will
+point at the wrong host.
+
+The share image is `public/og-image.png` (1200×630). Its source is
+`design/og-image.svg`; regenerate after editing with:
+
+```bash
+rsvg-convert -w 1200 -h 630 design/og-image.svg -o public/og-image.png
+```
+
 ## Seeding the card cache
 
 ```bash
