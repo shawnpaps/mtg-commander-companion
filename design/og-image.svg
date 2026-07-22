@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="table" cx="0.72" cy="0.5" r="0.62">
+      <stop offset="0%" stop-color="#14141c"/>
+      <stop offset="100%" stop-color="#0a0a0f"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#0a0a0f"/>
+  <rect width="1200" height="630" fill="url(#table)" opacity="0.85"/>
+
+  <!-- Left column: wordmark, tagline, join code -->
+  <text x="80" y="268" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="700" font-size="94" letter-spacing="-3.5" fill="#f4f4f5">Board<tspan fill="#a78bfa">State</tspan></text>
+
+  <text x="80" y="316" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="26" fill="#71717a">Shared board for the table.</text>
+  <text x="80" y="352" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="26" fill="#71717a">No accounts, just a code.</text>
+
+  <text x="80" y="428" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="500" font-size="14" letter-spacing="2.5" fill="#52525b">JOIN CODE</text>
+  <rect x="80" y="448" width="340" height="88" rx="18" fill="#14141c" stroke="#a78bfa" stroke-opacity="0.45" stroke-width="1.5"/>
+  <text x="256" y="507" text-anchor="middle" font-family="Menlo, SF Mono, Monaco, monospace" font-size="40" letter-spacing="11" fill="#a78bfa">A1B2C3</text>
+
+  <!-- Right: four seats around the table -->
+  <g font-family="Helvetica Neue, Helvetica, Arial, sans-serif">
+    <!-- top seat -->
+    <rect x="750" y="78" width="220" height="124" rx="18" fill="#14141c" stroke="#262633" stroke-width="1.5"/>
+    <text x="860" y="120" text-anchor="middle" font-size="18" fill="#71717a">Tess</text>
+    <text x="860" y="178" text-anchor="middle" font-weight="700" font-size="58" letter-spacing="-1.5" fill="#f4f4f5">40</text>
+
+    <!-- left seat -->
+    <rect x="598" y="253" width="220" height="124" rx="18" fill="#14141c" stroke="#262633" stroke-width="1.5"/>
+    <text x="708" y="295" text-anchor="middle" font-size="18" fill="#71717a">Priya</text>
+    <text x="708" y="353" text-anchor="middle" font-weight="700" font-size="58" letter-spacing="-1.5" fill="#f4f4f5">28</text>
+
+    <!-- right seat -->
+    <rect x="922" y="253" width="220" height="124" rx="18" fill="#14141c" stroke="#262633" stroke-width="1.5"/>
+    <text x="1032" y="295" text-anchor="middle" font-size="18" fill="#71717a">Marcus</text>
+    <text x="1032" y="353" text-anchor="middle" font-weight="700" font-size="58" letter-spacing="-1.5" fill="#f4f4f5">37</text>
+
+    <!-- bottom seat: you -->
+    <rect x="750" y="428" width="220" height="124" rx="18" fill="#14141c" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="860" y="470" text-anchor="middle" font-size="18" fill="#a78bfa">You</text>
+    <text x="860" y="528" text-anchor="middle" font-weight="700" font-size="58" letter-spacing="-1.5" fill="#f4f4f5">40</text>
+  </g>
+</svg>
