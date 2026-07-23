@@ -178,7 +178,7 @@ function bumpCounter(type: string, delta: number) {
       <!-- Placeholder until the Scryfall backfill lands. -->
       <span
         v-else
-        class="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900 p-2 text-center text-[10px] leading-tight text-zinc-400"
+        class="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900 p-2 text-center text-[10px] leading-tight text-fg-tertiary"
       >
         {{ card.name }}
       </span>
@@ -226,13 +226,13 @@ function bumpCounter(type: string, delta: number) {
               />
               <span
                 v-else
-                class="flex h-full w-full items-center justify-center p-2 text-center text-[10px] text-zinc-500"
+                class="flex h-full w-full items-center justify-center p-2 text-center text-[10px] text-fg-muted"
               >
                 {{ card.name }}
               </span>
               <span
                 v-if="card.imageUrl"
-                class="absolute inset-x-0 bottom-0 bg-black/70 py-1 text-center text-[10px] text-zinc-300"
+                class="absolute inset-x-0 bottom-0 bg-black/70 py-1 text-center text-[10px] text-fg-secondary"
               >
                 ⤢ Tap to enlarge
               </span>
@@ -240,16 +240,16 @@ function bumpCounter(type: string, delta: number) {
 
             <div class="min-w-0 flex-1">
               <p class="text-sm font-semibold leading-snug">{{ card.name }}</p>
-              <p v-if="card.typeLine" class="mt-1 text-[11px] text-zinc-500">
+              <p v-if="card.typeLine" class="mt-1 text-[11px] text-fg-muted">
                 {{ card.typeLine }}
               </p>
-              <p class="mt-2 text-[11px] text-zinc-600">
+              <p class="mt-2 text-[11px] text-fg-subtle">
                 {{ card.tapped ? 'Tapped' : 'Untapped' }} · {{ card.zone }}
               </p>
             </div>
           </div>
 
-          <p class="mb-2 text-xs uppercase tracking-wide text-zinc-500">
+          <p class="mb-2 text-xs uppercase tracking-wide text-fg-muted">
             Move to
           </p>
           <div class="mb-5 grid grid-cols-3 gap-2">
@@ -260,7 +260,7 @@ function bumpCounter(type: string, delta: number) {
               :class="
                 card.zone === zone.id
                   ? 'border-board-accent text-board-accent'
-                  : 'border-board-edge text-zinc-400'
+                  : 'border-board-edge text-fg-tertiary'
               "
               @click="moveTo(zone.id)"
             >
@@ -268,17 +268,17 @@ function bumpCounter(type: string, delta: number) {
             </button>
           </div>
 
-          <p class="mb-2 text-xs uppercase tracking-wide text-zinc-500">
+          <p class="mb-2 text-xs uppercase tracking-wide text-fg-muted">
             Counters
           </p>
           <div class="mb-5 flex flex-wrap gap-2">
             <button
               v-for="type in ['+1/+1', '-1/-1', 'loyalty', 'charge']"
               :key="type"
-              class="flex items-center gap-2 rounded-lg border border-board-edge px-3 py-2 text-xs text-zinc-300"
+              class="flex items-center gap-2 rounded-lg border border-board-edge px-3 py-2 text-xs text-fg-secondary"
             >
               <span
-                class="px-1 text-base leading-none text-zinc-500"
+                class="px-1 text-base leading-none text-fg-muted"
                 @click.stop="bumpCounter(type, -1)"
                 >−</span
               >
@@ -291,7 +291,7 @@ function bumpCounter(type: string, delta: number) {
             </button>
           </div>
 
-          <p class="mb-2 text-xs uppercase tracking-wide text-zinc-500">
+          <p class="mb-2 text-xs uppercase tracking-wide text-fg-muted">
             Give control to
           </p>
           <div class="grid grid-cols-2 gap-2">
@@ -302,7 +302,7 @@ function bumpCounter(type: string, delta: number) {
               :class="
                 card.controllerId === player._id
                   ? 'border-board-accent text-board-accent'
-                  : 'border-board-edge text-zinc-400'
+                  : 'border-board-edge text-fg-tertiary'
               "
               @click="giveControl(player._id)"
             >
@@ -326,13 +326,13 @@ function bumpCounter(type: string, delta: number) {
                   : 'Remove card from game'
               }}
             </button>
-            <p v-if="confirmingRemove" class="mt-2 text-center text-[11px] text-zinc-500">
+            <p v-if="confirmingRemove" class="mt-2 text-center text-[11px] text-fg-muted">
               Undo will bring it back.
             </p>
           </div>
 
           <button
-            class="mt-3 w-full rounded-xl border border-board-edge py-3 text-sm text-zinc-400"
+            class="mt-3 w-full rounded-xl border border-board-edge py-3 text-sm text-fg-tertiary"
             @click="menuOpen = false"
           >
             Close
@@ -374,7 +374,7 @@ function bumpCounter(type: string, delta: number) {
           >
             {{ counter.type }} {{ counter.count > 0 ? '+' : '' }}{{ counter.count }}
           </span>
-          <span class="w-full text-center text-[11px] text-zinc-500">
+          <span class="w-full text-center text-[11px] text-fg-muted">
             Tap anywhere to close
           </span>
         </div>

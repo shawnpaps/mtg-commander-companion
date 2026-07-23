@@ -2,6 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { formatValidator } from "./schema";
 import { applyInverse, writeLog, type InversePatch } from "./undo";
+import { currentUserId } from "./users";
 
 // Ambiguity-free alphabet: no 0/O/1/I.
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -58,13 +59,22 @@ export const createGame = mutation({
 });
 
 export const joinGame = mutation({
-  args: { code: v.string(), name: v.string(), sessionId: v.id("sessions") },
-  handler: async (ctx, { code, name, sessionId }) => {
+  args: {
+    code: v.string(),
+    name: v.string(),
+    sessionId: v.id("sessions"),
+    deckId: v.optional(v.id("decks")),
+  },
+  handler: async (ctx, { code, name, sessionId, deckId }) => {
     const game = await ctx.db
       .query("games")
       .withIndex("by_code", (q) => q.eq("code", code.toUpperCase()))
       .unique();
     if (!game) throw new Error(`No game with code ${code}`);
+
+    // Snapshot the account on the seat, so the result written at end of game is
+    // attributed even if the player signs out before the pod finishes.
+    const userId = await currentUserId(ctx);
 
     // Reconnect path: this device already has a seat at this table.
     const existing = await ctx.db
@@ -74,7 +84,12 @@ export const joinGame = mutation({
       )
       .unique();
     if (existing) {
-      await ctx.db.patch(existing._id, { connected: true, name });
+      await ctx.db.patch(existing._id, {
+        connected: true,
+        name,
+        ...(userId ? { userId } : {}),
+        ...(deckId ? { deckId } : {}),
+      });
       await writeLog(ctx, {
         gameId: game._id,
         actorId: existing._id,
@@ -94,6 +109,8 @@ export const joinGame = mutation({
       gameId: game._id,
       sessionId,
       name,
+      userId: userId ?? undefined,
+      deckId,
       seatIndex: seated.length,
       life: startingLife(game.format),
       poison: 0,

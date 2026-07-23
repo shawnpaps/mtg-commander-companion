@@ -56,7 +56,7 @@ const counts = computed(() => {
       />
       <h3 class="truncate text-sm font-medium">
         {{ player.name }}
-        <span v-if="isMe" class="text-zinc-600">(you)</span>
+        <span v-if="isMe" class="text-fg-subtle">(you)</span>
       </h3>
       <span v-if="player.poison" class="text-[10px] text-emerald-400">
         ☠ {{ player.poison }}
@@ -70,20 +70,20 @@ const counts = computed(() => {
 
     <p
       v-if="commander"
-      class="mb-2 truncate text-[11px] text-zinc-500"
+      class="mb-2 truncate text-[11px] text-fg-muted"
       :title="commander.name"
     >
-      <span class="text-zinc-600">⚔</span> {{ commander.name }}
+      <span class="text-fg-subtle">⚔</span> {{ commander.name }}
     </p>
 
-    <div class="mb-2 flex gap-3 text-[10px] uppercase tracking-wide text-zinc-600">
+    <div class="mb-2 flex gap-3 text-[10px] uppercase tracking-wide text-fg-subtle">
       <span>gy {{ counts.graveyard }}</span>
       <span>exile {{ counts.exile }}</span>
     </div>
 
     <div v-if="battlefieldCount" class="flex flex-col gap-2.5">
       <div v-for="section in sections" :key="section.group">
-        <h4 class="mb-1 text-[10px] uppercase tracking-wide text-zinc-600">
+        <h4 class="mb-1 text-[10px] uppercase tracking-wide text-fg-subtle">
           {{ section.group }}
         </h4>
         <div class="grid grid-cols-4 gap-1.5 sm:grid-cols-6 lg:grid-cols-8">
@@ -97,7 +97,7 @@ const counts = computed(() => {
         </div>
       </div>
     </div>
-    <p v-else class="py-3 text-center text-[11px] text-zinc-700">
+    <p v-else class="py-3 text-center text-[11px] text-fg-subtle">
       Empty battlefield
     </p>
   </section>

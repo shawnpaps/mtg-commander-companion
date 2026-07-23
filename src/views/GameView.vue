@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { api } from "@convex/_generated/api";
 import { useQuery, useMutation } from "../lib/useConvex";
 import { sessionId } from "../lib/session";
@@ -9,12 +9,18 @@ import TableView from "./TableView.vue";
 import Vitals from "./Vitals.vue";
 import ShareGameCode from "../components/ShareGameCode.vue";
 import UndoButton from "../components/UndoButton.vue";
+import EndGameSheet from "../components/EndGameSheet.vue";
 
 const props = defineProps<{ code: string }>();
 
 const state = useQuery(api.games.getGame, () => ({ code: props.code }));
 const startGame = useMutation(api.games.startGame);
 const nextTurn = useMutation(api.games.nextTurn);
+const startVoting = useMutation(api.results.startVoting);
+
+// Local dismissal, so "Hide" can tuck the sheet away without cancelling the
+// vote for everyone else at the table.
+const sheetHidden = ref(false);
 
 const game = computed(() => state.value?.game ?? null);
 const players = computed(() => state.value?.players ?? []);
@@ -43,18 +49,33 @@ const TABS: Array<{ id: SubView; label: string; icon: string }> = [
   { id: "table", label: "Table", icon: "◎" },
   { id: "vitals", label: "Vitals", icon: "♥" },
 ];
+
+// A finished game always shows its result, regardless of local dismissal —
+// there's nothing left to play underneath it.
+const showEndSheet = computed(
+  () =>
+    !!game.value &&
+    (game.value.status === "finished" ||
+      (!!game.value.votingStartedAt && !sheetHidden.value)),
+);
+
+function callGame() {
+  if (!game.value) return;
+  sheetHidden.value = false;
+  void startVoting({ gameId: game.value._id });
+}
 </script>
 
 <template>
   <div v-if="state === undefined" class="flex min-h-screen items-center justify-center">
-    <p class="animate-pulse text-sm text-zinc-500">Loading table…</p>
+    <p class="animate-pulse text-sm text-fg-muted">Loading table…</p>
   </div>
 
   <div
     v-else-if="!game"
     class="flex min-h-screen flex-col items-center justify-center gap-4 p-6"
   >
-    <p class="text-sm text-zinc-400">No game found for code {{ code }}.</p>
+    <p class="text-sm text-fg-tertiary">No game found for code {{ code }}.</p>
     <button
       class="rounded-xl border border-board-edge px-4 py-2 text-sm"
       @click="leaveGame()"
@@ -71,11 +92,18 @@ const TABS: Array<{ id: SubView; label: string; icon: string }> = [
       <div class="ml-auto flex items-center gap-2">
         <span
           v-if="game.status === 'active'"
-          class="hidden text-xs text-zinc-500 sm:inline"
+          class="hidden text-xs text-fg-muted sm:inline"
         >
           T{{ game.turnNumber }} · {{ turnPlayer?.name ?? '—' }}
         </span>
         <UndoButton :game-id="game._id" />
+        <button
+          v-if="game.status === 'active'"
+          class="rounded-lg border border-board-edge px-2.5 py-1.5 text-xs text-fg-tertiary hover:border-board-accent hover:text-board-accent"
+          @click="callGame"
+        >
+          End
+        </button>
       </div>
     </header>
 
@@ -84,7 +112,7 @@ const TABS: Array<{ id: SubView; label: string; icon: string }> = [
       class="border-b border-board-edge bg-board-panel px-4 py-3 text-sm"
     >
       <div class="flex items-center justify-between gap-3">
-        <span class="text-zinc-400">
+        <span class="text-fg-tertiary">
           Lobby · {{ players.length }}/{{ game.playerCount }} seated
         </span>
         <button
@@ -123,7 +151,7 @@ const TABS: Array<{ id: SubView; label: string; icon: string }> = [
           v-for="tab in TABS"
           :key="tab.id"
           class="flex flex-1 flex-col items-center gap-0.5 py-3 text-[11px] font-medium transition-colors"
-          :class="subView === tab.id ? 'text-board-accent' : 'text-zinc-500'"
+          :class="subView === tab.id ? 'text-board-accent' : 'text-fg-muted'"
           @click="subView = tab.id"
         >
           <span class="text-base leading-none">{{ tab.icon }}</span>
@@ -131,7 +159,7 @@ const TABS: Array<{ id: SubView; label: string; icon: string }> = [
         </button>
         <button
           v-if="game.status === 'active'"
-          class="flex flex-1 flex-col items-center gap-0.5 py-3 text-[11px] font-medium text-zinc-500"
+          class="flex flex-1 flex-col items-center gap-0.5 py-3 text-[11px] font-medium text-fg-muted"
           @click="nextTurn({ gameId: game._id })"
         >
           <span class="text-base leading-none">⏭</span>
@@ -139,5 +167,12 @@ const TABS: Array<{ id: SubView; label: string; icon: string }> = [
         </button>
       </div>
     </nav>
+
+    <EndGameSheet
+      v-if="showEndSheet"
+      :game-id="game._id"
+      :my-player-id="playerId"
+      @close="sheetHidden = true"
+    />
   </div>
 </template>

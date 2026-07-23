@@ -16,6 +16,10 @@ export const playerId = ref<Id<"players"> | null>(
 export type SubView = "board" | "table" | "vitals";
 export const subView = ref<SubView>("board");
 
+// Profile is an overlay rather than a route: it can be opened from the lobby or
+// mid-game without tearing down the table subscription underneath it.
+export const showProfile = ref(false);
+
 watch(gameCode, (value) => {
   if (value) localStorage.setItem(CODE_KEY, value);
   else localStorage.removeItem(CODE_KEY);

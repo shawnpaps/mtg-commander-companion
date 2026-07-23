@@ -12,6 +12,7 @@
     "seed": "convex run scryfall:seedBulkCards"
   },
   "dependencies": {
+    "@clerk/vue": "^2.4.18",
     "@sentry/vue": "^10.67.0",
     "convex": "^1.17.0",
     "motion": "^11.15.0",

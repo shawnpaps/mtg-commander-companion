@@ -1,8 +1,9 @@
 # BoardState
 
 A real-time companion app for Magic: The Gathering, built for the Commander table.
-Phone-first, no accounts — one player creates a game, everyone else joins with a
-six-character code.
+Phone-first — one player creates a game, everyone else joins with a
+six-character code. Accounts are optional: sign in to save decks and a win/loss
+record, or play as a guest and keep nothing.
 
 Vue 3 (`<script setup>`) + Vite on the front, [Convex](https://convex.dev) for the
 realtime backend, TailwindCSS v4 for styling, and `motion` for card and zone
@@ -22,9 +23,50 @@ in sync as you edit them. `VITE_CONVEX_URL` must point at the same deployment:
 ```
 CONVEX_DEPLOYMENT=dev:bright-trout-645
 VITE_CONVEX_URL=https://bright-trout-645.convex.cloud
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_…
 ```
 
 Run `npm run dev` and `npx convex dev` in two terminals during development.
+
+### Clerk
+
+Authentication is [Clerk](https://clerk.com). Two pieces of configuration are
+easy to miss, and both produce the same symptom — sign-in appears to work, but
+every account-scoped query keeps returning `null`:
+
+1. **A JWT template named `convex`** must exist in the Clerk dashboard (Configure
+   → JWT Templates → the Convex preset). Convex validates the token itself, so
+   the default session token is not enough; `src/lib/auth.ts` explicitly asks for
+   `getToken({ template: "convex" })`.
+2. **`CLERK_JWT_ISSUER_DOMAIN` must be set on the Convex deployment**, not in
+   `.env.local` — `convex/auth.config.ts` reads it at push time and Convex will
+   reject the push if it's missing:
+
+   ```bash
+   npx convex env set CLERK_JWT_ISSUER_DOMAIN https://<your-instance>.clerk.accounts.dev
+   ```
+
+   The issuer is the domain encoded in the publishable key, and it differs
+   between the dev and production Clerk instances — so set it separately on each
+   Convex deployment.
+
+**Theming Clerk.** `appearance.variables` in `src/main.ts` is not type-checked:
+`@clerk/vue` imports the `Appearance` type from `@clerk/ui`, which isn't a
+dependency, so unknown keys are accepted and silently dropped. Two consequences
+worth knowing before editing it:
+
+- Use the current names — `colorForeground`, `colorMutedForeground`, `colorInput`,
+  `colorInputForeground`. The legacy `colorText` / `colorTextSecondary` /
+  `colorInputText` / `colorInputBackground` do nothing. `colorForeground` defaults
+  to `inherit`, so getting its name wrong means the modal picks up the page's text
+  colour and turns unreadable when the OS prefers dark.
+- `colorNeutral` seeds derived borders, hover fills, and dropdown highlights. It
+  defaults to `black` for light themes and must be `white` here.
+
+To verify names against the source, `npm i -D @clerk/ui` and read
+`dist/internal/appearance.d.ts` — then uninstall it. Left installed, `@clerk/vue`
+resolves `appearance` as `Appearance<Ui>`, which is the wrong shape and fails the
+build.
 
 | Script | What it does |
 | --- | --- |
@@ -113,12 +155,73 @@ backfill". The count is self-reported by the seed rather than counted, because
 
 ### Anonymous sessions
 
-There are no passwords or emails. On first load the client mints a token, stores
-it in `localStorage`, and calls `getOrCreateSession` to upsert a `sessions` row.
+Playing needs no account. On first load the client mints a token, stores it in
+`localStorage`, and calls `getOrCreateSession` to upsert a `sessions` row.
 `joinGame` links that session to a `players` row; on reconnect the same token
 resolves through the `by_game_session` index to restore the right board and flip
 `connected` back to true. The `games.hostSessionId` field marks whoever created
 the table.
+
+### Accounts on top of sessions
+
+Clerk sits *beside* the session model rather than replacing it. `sessions.userId`
+is optional: signing in claims the device for an account, signing out releases it
+without disturbing the seat, so you can sign out mid-game and keep playing.
+
+`src/lib/auth.ts` bridges the two. It hands Convex a token fetcher
+(`convex.setAuth`) that mints a `convex`-template JWT from Clerk, and uses the
+`onChange` callback — not the Clerk `isSignedIn` flag — to decide when the
+backend will actually accept an authenticated write. Components gate
+account-scoped queries on `convexAuthenticated` for that reason; gating on
+`isSignedIn` races, because it flips before Convex has validated anything.
+
+`players.userId` is **snapshotted at join time** rather than read live at the end
+of the game. A result stays attributed to the account that actually played the
+seat even if that player signs out, or the device is handed to someone else.
+
+### Ending a game
+
+Any seated player can call the game, which opens a vote (`games.votingStartedAt`).
+Each seat casts one ballot into `winnerVotes`; recasting overwrites in place via
+the `by_game_voter` index, so a pod can converge without anyone retracting first.
+When a candidate reaches a strict majority of seated players —
+`Math.floor(n / 2) + 1`, so 3 of 4 — `finalizeGame` writes the permanent record
+and closes the table. Deliberately not host-only: the majority requirement is
+what protects the result, so gating the trigger would only add friction.
+
+Results are denormalized into one `gameParticipants` row per seat, so a user's
+entire W/L history is a single indexed read with no need to load the games
+themselves. Rows are written for anonymous players too — they land in the game's
+own record, they just carry no `userId` and never roll up to an account.
+
+### Decks
+
+`decks` rows require an account. Archidekt import runs as a Convex **action**
+because the browser can't call Archidekt directly (no CORS headers), so the fetch
+has to happen server-side; re-importing the same deck refreshes it in place via
+the `by_user_source` index instead of stacking duplicates.
+
+Moxfield is link-only on purpose. Their API is gated behind an approved
+partnership and blocks unapproved clients, so a Moxfield URL is saved as a named
+link (`source: "link"`) rather than a parsed list. If that access ever changes,
+the import path is the same shape as the Archidekt one.
+
+Attaching a deck to a seat is what makes the per-deck win rate on the profile
+work — `gameParticipants.deckId` is copied from `players.deckId` at finalize.
+
+Import respects Archidekt's `categories[].includedInDeck` flag, which is how it
+models Maybeboard and Sideboard. Without that filter those cards would be saved
+as part of the deck and offered as castable at the table.
+
+**Playing from a deck.** "Cast a card" always searches all of Scryfall. When the
+seat has a deck attached, a second control appears beneath it that opens that
+deck's list — grouped by the deckbuilder's own categories, filterable, and
+marking which cards are already on the table. `getDeckCards` returns the whole
+list in one read and the component filters locally, so it feels instant; it
+projects only name/type/art, because `cardCache.oracleData` holds the entire
+Scryfall record and would be enormous multiplied across a deck. Decks are
+private, so the query is owner-gated and the control simply doesn't render for a
+guest or someone else's seat.
 
 ### State flow
 
@@ -154,7 +257,12 @@ entries, undone actions drop straight out of the live feed.
 ```
 convex/
   schema.ts       tables + indexes
+  auth.config.ts  Clerk issuer Convex validates JWTs against
   sessions.ts     getOrCreateSession
+  users.ts        syncUser, unlinkSession, me, myHistory, myDeckRecords
+  decks.ts        listMyDecks, getDeck, getDeckCards, saveDeck, setPlayerDeck,
+                  importFromArchidekt
+  results.ts      startVoting, castVote, cancelVoting, getVoteState
   games.ts        createGame, joinGame, startGame, nextTurn, undoLastAction, getGame
   players.ts      updateLife, setPoison, setCommanderDmg
   cards.ts        castCard, setCommander, moveCard, toggleTap, setController,
@@ -164,11 +272,40 @@ convex/
   scryfall.ts     seedBulkCards, fetchCard, backfillCard, searchCards  (actions — all external fetch lives here)
   undo.ts         inverse-patch types + applier
 src/
-  lib/            convex client, session token, store, query composables
-  views/          LobbyView, GameView, MyBoard, TableView, Vitals
+  lib/            convex client, session token, auth bridge, store, query composables
+  views/          LobbyView, GameView, ProfileView, MyBoard, TableView, Vitals
   components/     Card, PlayerPod, LifeCounter, CommanderDamageGrid, CardLog,
-                  ShareGameCode, UndoButton, CardSearch, CommanderPicker
+                  ShareGameCode, UndoButton, CardSearch, CommanderPicker,
+                  AuthControls, EndGameSheet, DeckList
 ```
+
+### Palette
+
+Tokens live in `src/style.css` under `@theme`. Text uses the five `--color-fg-*`
+tiers rather than raw `text-zinc-*`:
+
+| Token | Hex | vs panel | Use |
+| --- | --- | --- | --- |
+| `text-fg` | `#f3f3f8` | 15.9:1 | headings, card names |
+| `text-fg-secondary` | `#d0d0d8` | 11.5:1 | body copy |
+| `text-fg-tertiary` | `#b3b3c0` | 8.5:1 | labels, active nav |
+| `text-fg-muted` | `#9695a5` | 6.0:1 | secondary detail |
+| `text-fg-subtle` | `#818191` | 4.6:1 | quietest legible tier |
+
+**Don't reach for `text-zinc-*` for text.** The scale this replaced bottomed out
+at `zinc-600`/`zinc-700`, which measure 2.37:1 and 1.75:1 on the panel — far under
+the 4.5:1 WCAG AA wants, and this UI is built almost entirely from `text-xs` and
+smaller, where that floor applies. Every tier above clears 4.5:1 against the
+panel, which is the worse of the two surfaces. Chroma rises as the tiers get
+quieter (hue 285.9, shared with the accent) so the greys read as part of this
+palette rather than as default zinc.
+
+`border-board-edge` is decorative structure. Use `border-board-edge-strong`
+(3.09:1) where a border is the only thing marking a control — inputs and outline
+buttons.
+
+`--color-fg` and the surfaces are also set on `body`, and `html` declares
+`color-scheme: dark`, so anything portaled outside `#app` inherits sane values.
 
 ### Zones and the battlefield
 

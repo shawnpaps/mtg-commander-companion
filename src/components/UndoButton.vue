@@ -26,7 +26,7 @@ async function undo() {
 <template>
   <div class="relative">
     <button
-      class="rounded-lg border border-board-edge bg-board-panel px-3 py-1.5 text-xs text-zinc-300 disabled:opacity-40"
+      class="rounded-lg border border-board-edge bg-board-panel px-3 py-1.5 text-xs text-fg-secondary disabled:opacity-40"
       :disabled="busy"
       @click="undo"
     >
@@ -34,7 +34,7 @@ async function undo() {
     </button>
     <span
       v-if="toast"
-      class="absolute right-0 top-full mt-2 whitespace-nowrap rounded-lg bg-zinc-800 px-2.5 py-1.5 text-[11px] text-zinc-300 shadow-lg"
+      class="absolute right-0 top-full mt-2 whitespace-nowrap rounded-lg bg-zinc-800 px-2.5 py-1.5 text-[11px] text-fg-secondary shadow-lg"
     >
       {{ toast }}
     </span>

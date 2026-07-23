@@ -70,7 +70,7 @@ const list = computed(() => entries.value ?? []);
 
 <template>
   <div class="flex flex-col gap-1">
-    <p v-if="!list.length" class="py-6 text-center text-xs text-zinc-600">
+    <p v-if="!list.length" class="py-6 text-center text-xs text-fg-subtle">
       Nothing has happened yet.
     </p>
     <div
@@ -78,10 +78,10 @@ const list = computed(() => entries.value ?? []);
       :key="entry._id"
       class="flex items-baseline gap-3 rounded-lg px-3 py-2 text-sm odd:bg-board-panel/50"
     >
-      <span class="shrink-0 font-mono text-[10px] text-zinc-600">
+      <span class="shrink-0 font-mono text-[10px] text-fg-subtle">
         {{ time(entry.ts) }}
       </span>
-      <span class="text-zinc-300">{{ describe(entry) }}</span>
+      <span class="text-fg-secondary">{{ describe(entry) }}</span>
     </div>
   </div>
 </template>

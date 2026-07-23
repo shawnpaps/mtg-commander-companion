@@ -12,7 +12,7 @@ defineProps<{
 
 <template>
   <div class="mx-auto w-full max-w-6xl px-3 py-4">
-    <p v-if="players.length" class="mb-3 px-1 text-[11px] text-zinc-600">
+    <p v-if="players.length" class="mb-3 px-1 text-[11px] text-fg-subtle">
       Tap any opponent's card to enlarge it. Long-press your own to act on it.
     </p>
 
@@ -29,7 +29,7 @@ defineProps<{
       />
     </div>
 
-    <p v-if="!players.length" class="py-12 text-center text-sm text-zinc-600">
+    <p v-if="!players.length" class="py-12 text-center text-sm text-fg-subtle">
       Waiting for players to join.
     </p>
   </div>
