@@ -191,6 +191,20 @@ the import path is the same shape as the Archidekt one.
 Attaching a deck to a seat is what makes the per-deck win rate on the profile
 work — `gameParticipants.deckId` is copied from `players.deckId` at finalize.
 
+Import respects Archidekt's `categories[].includedInDeck` flag, which is how it
+models Maybeboard and Sideboard. Without that filter those cards would be saved
+as part of the deck and offered as castable at the table.
+
+**Playing from a deck.** "Cast a card" always searches all of Scryfall. When the
+seat has a deck attached, a second control appears beneath it that opens that
+deck's list — grouped by the deckbuilder's own categories, filterable, and
+marking which cards are already on the table. `getDeckCards` returns the whole
+list in one read and the component filters locally, so it feels instant; it
+projects only name/type/art, because `cardCache.oracleData` holds the entire
+Scryfall record and would be enormous multiplied across a deck. Decks are
+private, so the query is owner-gated and the control simply doesn't render for a
+guest or someone else's seat.
+
 ### State flow
 
 All shared state lives in Convex and reaches components through reactive queries
@@ -228,7 +242,8 @@ convex/
   auth.config.ts  Clerk issuer Convex validates JWTs against
   sessions.ts     getOrCreateSession
   users.ts        syncUser, unlinkSession, me, myHistory, myDeckRecords
-  decks.ts        listMyDecks, saveDeck, setPlayerDeck, importFromArchidekt
+  decks.ts        listMyDecks, getDeck, getDeckCards, saveDeck, setPlayerDeck,
+                  importFromArchidekt
   results.ts      startVoting, castVote, cancelVoting, getVoteState
   games.ts        createGame, joinGame, startGame, nextTurn, undoLastAction, getGame
   players.ts      updateLife, setPoison, setCommanderDmg
@@ -243,7 +258,7 @@ src/
   views/          LobbyView, GameView, ProfileView, MyBoard, TableView, Vitals
   components/     Card, PlayerPod, LifeCounter, CommanderDamageGrid, CardLog,
                   ShareGameCode, UndoButton, CardSearch, CommanderPicker,
-                  AuthControls, EndGameSheet
+                  AuthControls, EndGameSheet, DeckList
 ```
 
 ### Zones and the battlefield

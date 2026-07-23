@@ -53,6 +53,56 @@ export const getDeck = query({
 });
 
 /**
+ * The deck's card list in the shape the card picker wants, enriched with art and
+ * type line from `cardCache` where we have it.
+ *
+ * Returned in full rather than filtered server-side: a Commander deck is ~100
+ * rows, so the picker holds the list and filters as you type, which makes
+ * searching your own deck feel instant instead of debounced.
+ *
+ * Only projected fields come back — `cardCache.oracleData` holds the entire
+ * Scryfall record and would be enormous multiplied across a deck.
+ */
+export const getDeckCards = query({
+  args: { deckId: v.id("decks") },
+  handler: async (ctx, { deckId }) => {
+    const userId = await currentUserId(ctx);
+    if (!userId) return null;
+
+    const deck = await ctx.db.get(deckId);
+    if (!deck || deck.userId !== userId) return null;
+
+    const entries = deck.cards ?? [];
+    // A link-only deck (Moxfield) has no list, so there's nothing to search —
+    // null tells the picker to fall back to searching all of Scryfall.
+    if (entries.length === 0) return null;
+
+    return await Promise.all(
+      entries.map(async (entry) => {
+        const cached = entry.scryfallId
+          ? await ctx.db
+              .query("cardCache")
+              .withIndex("by_scryfall", (q) =>
+                q.eq("scryfallId", entry.scryfallId!),
+              )
+              .unique()
+          : null;
+
+        const images = (cached?.imageUris ?? {}) as Record<string, string>;
+        return {
+          scryfallId: entry.scryfallId ?? "",
+          name: entry.name,
+          quantity: entry.quantity,
+          category: entry.category,
+          typeLine: cached?.oracleData?.type_line as string | undefined,
+          imageUrl: images.small ?? images.normal,
+        };
+      }),
+    );
+  },
+});
+
+/**
  * Save a deck the user typed in, or a link to a deck on a site we can't import
  * from. Moxfield lands here: their API requires an approved partnership, so we
  * keep the URL and let the user name the deck and its commander.
@@ -162,9 +212,27 @@ export const importFromArchidekt = action({
     const data = (await response.json()) as {
       name?: string;
       cards?: ArchidektCard[];
+      categories?: Array<{ name?: string; includedInDeck?: boolean }>;
+    };
+
+    // Archidekt models Maybeboard/Sideboard as categories flagged
+    // `includedInDeck: false`. Those cards aren't in the 100, so they must not
+    // reach the deck list — otherwise they'd show up as castable at the table.
+    const excluded = new Set(
+      (data.categories ?? [])
+        .filter((c) => c.includedInDeck === false && c.name)
+        .map((c) => c.name!.toLowerCase()),
+    );
+
+    const inDeck = (entry: ArchidektCard) => {
+      const categories = entry.categories ?? [];
+      if (categories.length === 0) return true;
+      // Keep the card if any of its categories still counts toward the deck.
+      return categories.some((c) => !excluded.has(c.toLowerCase()));
     };
 
     const cards = (data.cards ?? [])
+      .filter(inDeck)
       .map((entry) => ({
         name: entry.card?.oracleCard?.name ?? "",
         quantity: entry.quantity ?? 1,
@@ -179,9 +247,11 @@ export const importFromArchidekt = action({
       throw new Error("That Archidekt deck came back empty.");
     }
 
-    const commanderEntry = (data.cards ?? []).find((entry) =>
-      entry.categories?.some((c) => c.toLowerCase() === "commander"),
-    );
+    const commanderEntry = (data.cards ?? [])
+      .filter(inDeck)
+      .find((entry) =>
+        entry.categories?.some((c) => c.toLowerCase() === "commander"),
+      );
 
     // Colour identity comes off the commander in Commander; for other formats
     // it's the union across the deck, which is close enough for a badge.

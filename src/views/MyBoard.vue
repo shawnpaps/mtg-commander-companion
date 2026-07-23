@@ -3,8 +3,10 @@ import { computed, ref } from "vue";
 import Card from "../components/Card.vue";
 import CardSearch, { type SearchResult } from "../components/CardSearch.vue";
 import CommanderPicker from "../components/CommanderPicker.vue";
+import DeckList from "../components/DeckList.vue";
 import { api } from "@convex/_generated/api";
-import { useMutation } from "../lib/useConvex";
+import { useMutation, useQuery } from "../lib/useConvex";
+import { convexAuthenticated } from "../lib/auth";
 import { playerId } from "../lib/store";
 import { groupCards } from "../lib/cardTypes";
 import type { Doc, Id } from "@convex/_generated/dataModel";
@@ -48,6 +50,16 @@ const sections = computed(() =>
 );
 
 const countIn = (id: string) => mine.value.filter((c) => c.zone === id).length;
+
+// The deck attached to this seat at join time. Only its owner can read the list,
+// so this resolves to null for a guest or another player's seat.
+const deckId = computed(() => me.value?.deckId ?? null);
+const deck = useQuery(api.decks.getDeck, () =>
+  deckId.value && convexAuthenticated.value ? { deckId: deckId.value } : null,
+);
+
+// Everything already on the table, so the deck list can mark what's been cast.
+const inPlayIds = computed(() => mine.value.map((c) => c.scryfallId));
 
 function cast(result: SearchResult) {
   if (!playerId.value) return;
@@ -114,10 +126,17 @@ function cast(result: SearchResult) {
       Nothing in your {{ zone }}.
     </p>
 
-    <div class="mt-6">
+    <div class="mt-6 flex flex-col gap-2">
       <CardSearch
         label="+ Cast a card"
         :disabled="!playerId"
+        @select="cast"
+      />
+      <DeckList
+        v-if="deckId && deck"
+        :deck-id="deckId"
+        :deck-name="deck.name"
+        :in-play-ids="inPlayIds"
         @select="cast"
       />
     </div>
