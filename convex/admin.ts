@@ -66,9 +66,26 @@ export const deleteGame = internalMutation({
       .query("gameLog")
       .withIndex("by_game", (q) => q.eq("gameId", game._id))
       .collect();
+    const votes = await ctx.db
+      .query("winnerVotes")
+      .withIndex("by_game", (q) => q.eq("gameId", game._id))
+      .collect();
+    const participants = await ctx.db
+      .query("gameParticipants")
+      .withIndex("by_game", (q) => q.eq("gameId", game._id))
+      .collect();
+    const results = await ctx.db
+      .query("gameResults")
+      .withIndex("by_game", (q) => q.eq("gameId", game._id))
+      .collect();
 
     for (const card of cards) await ctx.db.delete(card._id);
     for (const entry of log) await ctx.db.delete(entry._id);
+    for (const vote of votes) await ctx.db.delete(vote._id);
+    // Dropping participants removes this game from every player's W/L record,
+    // which is the point: a deleted game shouldn't still count against anyone.
+    for (const row of participants) await ctx.db.delete(row._id);
+    for (const row of results) await ctx.db.delete(row._id);
 
     const sessionIds = new Set(players.map((p) => p.sessionId));
     sessionIds.add(game.hostSessionId);
@@ -95,6 +112,9 @@ export const deleteGame = internalMutation({
       players: players.length,
       cards: cards.length,
       logEntries: log.length,
+      votes: votes.length,
+      participants: participants.length,
+      results: results.length,
       sessionsRemoved,
     };
   },
