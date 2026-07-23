@@ -27,6 +27,10 @@
   --color-fg-tertiary: #b3b3c0; /*  8.5:1 — labels, active nav */
   --color-fg-muted: #9695a5; /*  6.0:1 — secondary detail */
   --color-fg-subtle: #818191; /*  4.6:1 — the quietest legible tier */
+
+  /* Destructive actions and error text. Solved the same way as the tiers above
+     so it sits at 6.1:1 on the panel rather than being a stock red dropped in. */
+  --color-danger: #f17070;
 }
 
 html {

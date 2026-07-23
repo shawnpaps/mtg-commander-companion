@@ -262,7 +262,7 @@ async function submit() {
         />
       </label>
 
-      <p v-if="error" class="text-sm text-red-400">{{ error }}</p>
+      <p v-if="error" class="text-sm text-danger">{{ error }}</p>
 
       <button
         type="submit"

@@ -28,7 +28,7 @@ onMounted(async () => {
       v-if="error"
       class="flex min-h-screen items-center justify-center p-6 text-center"
     >
-      <p class="max-w-sm text-sm text-red-400">
+      <p class="max-w-sm text-sm text-danger">
         Couldn't reach the backend: {{ error }}
       </p>
     </div>
