@@ -88,12 +88,12 @@ function cast(result: SearchResult) {
         :class="
           zone === z.id
             ? 'border-board-accent bg-board-accent/10 text-board-accent'
-            : 'border-board-edge text-zinc-500'
+            : 'border-board-edge text-fg-muted'
         "
         @click="zone = z.id"
       >
         {{ z.label }}
-        <span class="ml-1 text-zinc-600">{{ countIn(z.id) }}</span>
+        <span class="ml-1 text-fg-subtle">{{ countIn(z.id) }}</span>
       </button>
     </div>
 
@@ -101,10 +101,10 @@ function cast(result: SearchResult) {
       <section v-for="section in sections" :key="section.group ?? 'all'">
         <h3
           v-if="section.group"
-          class="mb-2 flex items-baseline gap-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500"
+          class="mb-2 flex items-baseline gap-2 text-[11px] font-medium uppercase tracking-wide text-fg-muted"
         >
           {{ section.group }}
-          <span class="text-zinc-700">{{ section.cards.length }}</span>
+          <span class="text-fg-subtle">{{ section.cards.length }}</span>
         </h3>
         <TransitionGroup
           tag="div"
@@ -122,7 +122,7 @@ function cast(result: SearchResult) {
       </section>
     </div>
 
-    <p v-else class="py-12 text-center text-sm text-zinc-600">
+    <p v-else class="py-12 text-center text-sm text-fg-subtle">
       Nothing in your {{ zone }}.
     </p>
 

@@ -26,13 +26,13 @@ function bump(to: Doc<"players">, from: Id<"players">, delta: number) {
     <table class="w-full min-w-max border-separate border-spacing-1 text-center">
       <thead>
         <tr>
-          <th class="px-2 text-left text-[10px] uppercase text-zinc-600">
+          <th class="px-2 text-left text-[10px] uppercase text-fg-subtle">
             dealt to ↓ / by →
           </th>
           <th
             v-for="from in players"
             :key="from._id"
-            class="max-w-16 truncate px-2 text-[11px] font-medium text-zinc-400"
+            class="max-w-16 truncate px-2 text-[11px] font-medium text-fg-tertiary"
           >
             {{ from.name }}
           </th>
@@ -41,7 +41,7 @@ function bump(to: Doc<"players">, from: Id<"players">, delta: number) {
       <tbody>
         <tr v-for="to in players" :key="to._id">
           <th
-            class="max-w-20 truncate px-2 text-left text-[11px] font-medium text-zinc-400"
+            class="max-w-20 truncate px-2 text-left text-[11px] font-medium text-fg-tertiary"
           >
             {{ to.name }}
           </th>
@@ -49,7 +49,7 @@ function bump(to: Doc<"players">, from: Id<"players">, delta: number) {
             <!-- A commander deals no damage to its own controller. -->
             <span
               v-if="from._id === to._id"
-              class="block rounded-lg bg-board-panel/50 py-2 text-zinc-700"
+              class="block rounded-lg bg-board-panel/50 py-2 text-fg-subtle"
               >—</span
             >
             <button
@@ -59,8 +59,8 @@ function bump(to: Doc<"players">, from: Id<"players">, delta: number) {
                 damage(to, from._id) >= 21
                   ? 'border-red-500/60 bg-red-500/10 text-red-400'
                   : damage(to, from._id) > 0
-                    ? 'border-board-edge bg-board-panel text-zinc-200'
-                    : 'border-board-edge/60 bg-board-panel/40 text-zinc-600'
+                    ? 'border-board-edge bg-board-panel text-fg'
+                    : 'border-board-edge/60 bg-board-panel/40 text-fg-subtle'
               "
               @click="bump(to, from._id, 1)"
               @contextmenu.prevent="bump(to, from._id, -1)"
@@ -71,7 +71,7 @@ function bump(to: Doc<"players">, from: Id<"players">, delta: number) {
         </tr>
       </tbody>
     </table>
-    <p class="mt-2 px-1 text-[10px] text-zinc-600">
+    <p class="mt-2 px-1 text-[10px] text-fg-subtle">
       Tap to add 1, long-press / right-click to subtract. 21 turns red.
     </p>
   </div>

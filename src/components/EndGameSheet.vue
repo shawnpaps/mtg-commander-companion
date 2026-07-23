@@ -61,13 +61,13 @@ function vote(candidatePlayerId: Id<"players">) {
       <!-- Result: the vote carried and the game is on the books. -->
       <template v-if="finished">
         <div class="text-center">
-          <p class="text-xs uppercase tracking-wide text-zinc-500">
+          <p class="text-xs uppercase tracking-wide text-fg-muted">
             {{ iWon ? 'Victory' : 'Game over' }}
           </p>
           <p class="mt-2 text-2xl font-semibold">
             {{ winnerName ?? 'Unknown' }} wins
           </p>
-          <p class="mt-1 text-sm text-zinc-500">
+          <p class="mt-1 text-sm text-fg-muted">
             {{ state?.result?.turnCount ?? 0 }} turns ·
             {{ state?.result?.playerCount ?? 0 }} players
           </p>
@@ -75,7 +75,7 @@ function vote(candidatePlayerId: Id<"players">) {
 
         <p
           v-if="isSignedIn"
-          class="mt-5 rounded-xl border border-board-edge bg-board-bg px-4 py-3 text-center text-xs text-zinc-400"
+          class="mt-5 rounded-xl border border-board-edge bg-board-bg px-4 py-3 text-center text-xs text-fg-tertiary"
         >
           Saved to your record.
         </p>
@@ -83,7 +83,7 @@ function vote(candidatePlayerId: Id<"players">) {
           v-else
           class="mt-5 rounded-xl border border-board-edge bg-board-bg px-4 py-3 text-center"
         >
-          <p class="text-xs text-zinc-400">
+          <p class="text-xs text-fg-tertiary">
             This game wasn't saved — you're playing as a guest.
           </p>
           <SignUpButton mode="modal">
@@ -107,7 +107,7 @@ function vote(candidatePlayerId: Id<"players">) {
       <template v-else>
         <div class="mb-4 flex items-baseline justify-between">
           <h2 class="text-lg font-semibold">Who won?</h2>
-          <span class="text-xs text-zinc-500">
+          <span class="text-xs text-fg-muted">
             {{ votesCast }} of {{ seatedCount }} voted
           </span>
         </div>
@@ -119,7 +119,7 @@ function vote(candidatePlayerId: Id<"players">) {
               :class="
                 myVote === row.playerId
                   ? 'border-board-accent bg-board-accent/10'
-                  : 'border-board-edge bg-board-bg hover:border-zinc-600'
+                  : 'border-board-edge bg-board-bg hover:border-board-edge-strong'
               "
               :disabled="!myPlayerId"
               @click="vote(row.playerId)"
@@ -138,7 +138,7 @@ function vote(candidatePlayerId: Id<"players">) {
               </span>
               <span
                 class="w-14 text-right text-xs tabular-nums"
-                :class="row.count ? 'text-zinc-400' : 'text-zinc-600'"
+                :class="row.count ? 'text-fg-tertiary' : 'text-fg-subtle'"
               >
                 {{ row.count ? `${row.count} vote${row.count === 1 ? '' : 's'}` : '—' }}
               </span>
@@ -146,19 +146,19 @@ function vote(candidatePlayerId: Id<"players">) {
           </li>
         </ul>
 
-        <p class="mt-4 text-center text-xs text-zinc-500">
+        <p class="mt-4 text-center text-xs text-fg-muted">
           Need {{ threshold }} of {{ seatedCount }} to confirm.
         </p>
 
         <div class="mt-4 flex gap-2">
           <button
-            class="flex-1 rounded-xl border border-board-edge py-3 text-sm text-zinc-400"
+            class="flex-1 rounded-xl border border-board-edge py-3 text-sm text-fg-tertiary"
             @click="cancelVoting({ gameId }).then(() => emit('close'))"
           >
             Keep playing
           </button>
           <button
-            class="flex-1 rounded-xl border border-board-edge py-3 text-sm text-zinc-400"
+            class="flex-1 rounded-xl border border-board-edge py-3 text-sm text-fg-tertiary"
             @click="emit('close')"
           >
             Hide

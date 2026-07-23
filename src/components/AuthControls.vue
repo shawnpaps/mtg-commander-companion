@@ -9,7 +9,7 @@ withDefaults(defineProps<{ compact?: boolean }>(), { compact: false });
     <Show when="signed-out">
       <SignInButton mode="modal">
         <button
-          class="rounded-lg px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:text-zinc-100"
+          class="rounded-lg px-3 py-1.5 text-xs font-medium text-fg-tertiary transition-colors hover:text-fg"
         >
           Sign in
         </button>

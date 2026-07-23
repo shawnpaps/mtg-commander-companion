@@ -99,7 +99,7 @@ async function submit() {
       <div class="mb-6 flex items-center justify-between">
         <button
           v-if="convexAuthenticated"
-          class="text-xs text-zinc-500 hover:text-zinc-300"
+          class="text-xs text-fg-muted hover:text-fg-secondary"
           @click="showProfile = true"
         >
           Decks &amp; record
@@ -111,7 +111,7 @@ async function submit() {
       <h1 class="text-3xl font-semibold tracking-tight">
         Board<span class="text-board-accent">State</span>
       </h1>
-      <p class="mt-1 text-sm text-zinc-500">
+      <p class="mt-1 text-sm text-fg-muted">
         Shared board for the table. Jump in with a code — no account needed.
       </p>
     </header>
@@ -121,7 +121,7 @@ async function submit() {
       v-if="!convexAuthenticated"
       class="mb-6 rounded-xl border border-board-edge bg-board-panel px-4 py-3"
     >
-      <p class="text-xs leading-relaxed text-zinc-400">
+      <p class="text-xs leading-relaxed text-fg-tertiary">
         <span class="text-board-accent">Sign in for the full experience.</span>
         Accounts save your decks and keep a running win/loss record across pods.
         Guests can play everything — nothing gets saved.
@@ -136,7 +136,7 @@ async function submit() {
         :class="
           mode === option
             ? 'bg-board-accent text-zinc-950'
-            : 'text-zinc-400 hover:text-zinc-200'
+            : 'text-fg-tertiary hover:text-fg'
         "
         @click="mode = option"
       >
@@ -146,7 +146,7 @@ async function submit() {
 
     <form class="flex flex-col gap-6" @submit.prevent="submit">
       <label class="flex flex-col gap-2">
-        <span class="text-xs font-medium uppercase tracking-wide text-zinc-500">
+        <span class="text-xs font-medium uppercase tracking-wide text-fg-muted">
           Your name
         </span>
         <input
@@ -154,13 +154,13 @@ async function submit() {
           type="text"
           autocomplete="nickname"
           placeholder="Nicol Bolas Enjoyer"
-          class="rounded-xl border border-board-edge bg-board-panel px-4 py-3 text-base outline-none focus:border-board-accent"
+          class="rounded-xl border border-board-edge-strong bg-board-panel px-4 py-3 text-base outline-none focus:border-board-accent"
         />
       </label>
 
       <template v-if="mode === 'create'">
         <div class="flex flex-col gap-2">
-          <span class="text-xs font-medium uppercase tracking-wide text-zinc-500">
+          <span class="text-xs font-medium uppercase tracking-wide text-fg-muted">
             Format
           </span>
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -172,20 +172,20 @@ async function submit() {
               :class="
                 format === f.id
                   ? 'border-board-accent bg-board-accent/10 text-board-accent'
-                  : 'border-board-edge bg-board-panel text-zinc-400'
+                  : 'border-board-edge bg-board-panel text-fg-tertiary'
               "
               @click="format = f.id"
             >
               {{ f.label }}
             </button>
           </div>
-          <p class="text-xs text-zinc-600">
+          <p class="text-xs text-fg-subtle">
             Players start at {{ startingLife }} life.
           </p>
         </div>
 
         <div class="flex flex-col gap-2">
-          <span class="text-xs font-medium uppercase tracking-wide text-zinc-500">
+          <span class="text-xs font-medium uppercase tracking-wide text-fg-muted">
             Players
           </span>
           <div class="grid grid-cols-5 gap-2">
@@ -197,7 +197,7 @@ async function submit() {
               :class="
                 playerCount === n
                   ? 'border-board-accent bg-board-accent/10 text-board-accent'
-                  : 'border-board-edge bg-board-panel text-zinc-400'
+                  : 'border-board-edge bg-board-panel text-fg-tertiary'
               "
               @click="playerCount = n"
             >
@@ -209,8 +209,8 @@ async function submit() {
 
       <!-- Deck choice is what makes the per-deck win rate on the profile work. -->
       <div v-if="decks?.length" class="flex flex-col gap-2">
-        <span class="text-xs font-medium uppercase tracking-wide text-zinc-500">
-          Deck <span class="normal-case text-zinc-600">(optional)</span>
+        <span class="text-xs font-medium uppercase tracking-wide text-fg-muted">
+          Deck <span class="normal-case text-fg-subtle">(optional)</span>
         </span>
         <div class="flex flex-wrap gap-2">
           <button
@@ -219,7 +219,7 @@ async function submit() {
             :class="
               deckId === null
                 ? 'border-board-accent bg-board-accent/10 text-board-accent'
-                : 'border-board-edge bg-board-panel text-zinc-400'
+                : 'border-board-edge bg-board-panel text-fg-tertiary'
             "
             @click="deckId = null"
           >
@@ -233,7 +233,7 @@ async function submit() {
             :class="
               deckId === deck._id
                 ? 'border-board-accent bg-board-accent/10 text-board-accent'
-                : 'border-board-edge bg-board-panel text-zinc-400'
+                : 'border-board-edge bg-board-panel text-fg-tertiary'
             "
             @click="deckId = deck._id"
           >
@@ -243,7 +243,7 @@ async function submit() {
       </div>
 
       <label v-if="mode === 'join'" class="flex flex-col gap-2">
-        <span class="text-xs font-medium uppercase tracking-wide text-zinc-500">
+        <span class="text-xs font-medium uppercase tracking-wide text-fg-muted">
           Game code
         </span>
         <input
@@ -253,7 +253,7 @@ async function submit() {
           autocapitalize="characters"
           maxlength="6"
           placeholder="A1B2C3"
-          class="rounded-xl border border-board-edge bg-board-panel px-4 py-3 text-center font-mono text-2xl uppercase tracking-[0.35em] outline-none focus:border-board-accent"
+          class="rounded-xl border border-board-edge-strong bg-board-panel px-4 py-3 text-center font-mono text-2xl uppercase tracking-[0.35em] outline-none focus:border-board-accent"
         />
       </label>
 

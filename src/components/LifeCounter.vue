@@ -27,7 +27,7 @@ function change(delta: number) {
 <template>
   <div class="flex items-center justify-between gap-3">
     <button
-      class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-board-edge text-xl text-zinc-400 active:bg-board-edge"
+      class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-board-edge text-xl text-fg-tertiary active:bg-board-edge"
       @click="change(-1)"
     >
       −
@@ -47,18 +47,18 @@ function change(delta: number) {
             ? 'text-red-500'
             : player.life <= 5
               ? 'text-amber-400'
-              : 'text-zinc-100',
+              : 'text-fg',
         ]"
       >
         {{ player.life }}
       </span>
-      <span v-if="!compact" class="mt-1 text-[10px] uppercase text-zinc-600">
+      <span v-if="!compact" class="mt-1 text-[10px] uppercase text-fg-subtle">
         tap for −5
       </span>
     </button>
 
     <button
-      class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-board-edge text-xl text-zinc-400 active:bg-board-edge"
+      class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-board-edge text-xl text-fg-tertiary active:bg-board-edge"
       @click="change(1)"
     >
       +

@@ -79,7 +79,7 @@ const commanderName = (player: Doc<"players">) =>
             <h2 class="truncate text-sm font-medium">{{ me.name }}</h2>
             <p
               v-if="commanderName(me)"
-              class="truncate text-[11px] text-zinc-400"
+              class="truncate text-[11px] text-fg-tertiary"
             >
               {{ commanderName(me) }}
             </p>
@@ -121,28 +121,28 @@ const commanderName = (player: Doc<"players">) =>
         />
 
         <div class="relative p-3">
-          <p class="truncate text-xs text-zinc-300">{{ player.name }}</p>
+          <p class="truncate text-xs text-fg-secondary">{{ player.name }}</p>
           <p
             v-if="commanderName(player)"
-            class="mb-2 truncate text-[10px] text-zinc-500"
+            class="mb-2 truncate text-[10px] text-fg-muted"
           >
             {{ commanderName(player) }}
           </p>
-          <p v-else class="mb-2 text-[10px] text-zinc-700">No commander</p>
+          <p v-else class="mb-2 text-[10px] text-fg-subtle">No commander</p>
           <LifeCounter :player="player" compact />
         </div>
       </div>
     </section>
 
     <section v-if="game.format === 'commander'" class="mb-6">
-      <h2 class="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
+      <h2 class="mb-2 text-xs font-medium uppercase tracking-wide text-fg-muted">
         Commander damage
       </h2>
       <CommanderDamageGrid :players="players" />
     </section>
 
     <section>
-      <h2 class="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
+      <h2 class="mb-2 text-xs font-medium uppercase tracking-wide text-fg-muted">
         Game log
       </h2>
       <CardLog :game-id="game._id" :players="players" />

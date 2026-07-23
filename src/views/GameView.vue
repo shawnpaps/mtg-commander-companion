@@ -68,14 +68,14 @@ function callGame() {
 
 <template>
   <div v-if="state === undefined" class="flex min-h-screen items-center justify-center">
-    <p class="animate-pulse text-sm text-zinc-500">Loading table…</p>
+    <p class="animate-pulse text-sm text-fg-muted">Loading table…</p>
   </div>
 
   <div
     v-else-if="!game"
     class="flex min-h-screen flex-col items-center justify-center gap-4 p-6"
   >
-    <p class="text-sm text-zinc-400">No game found for code {{ code }}.</p>
+    <p class="text-sm text-fg-tertiary">No game found for code {{ code }}.</p>
     <button
       class="rounded-xl border border-board-edge px-4 py-2 text-sm"
       @click="leaveGame()"
@@ -92,14 +92,14 @@ function callGame() {
       <div class="ml-auto flex items-center gap-2">
         <span
           v-if="game.status === 'active'"
-          class="hidden text-xs text-zinc-500 sm:inline"
+          class="hidden text-xs text-fg-muted sm:inline"
         >
           T{{ game.turnNumber }} · {{ turnPlayer?.name ?? '—' }}
         </span>
         <UndoButton :game-id="game._id" />
         <button
           v-if="game.status === 'active'"
-          class="rounded-lg border border-board-edge px-2.5 py-1.5 text-xs text-zinc-400 hover:border-board-accent hover:text-board-accent"
+          class="rounded-lg border border-board-edge px-2.5 py-1.5 text-xs text-fg-tertiary hover:border-board-accent hover:text-board-accent"
           @click="callGame"
         >
           End
@@ -112,7 +112,7 @@ function callGame() {
       class="border-b border-board-edge bg-board-panel px-4 py-3 text-sm"
     >
       <div class="flex items-center justify-between gap-3">
-        <span class="text-zinc-400">
+        <span class="text-fg-tertiary">
           Lobby · {{ players.length }}/{{ game.playerCount }} seated
         </span>
         <button
@@ -151,7 +151,7 @@ function callGame() {
           v-for="tab in TABS"
           :key="tab.id"
           class="flex flex-1 flex-col items-center gap-0.5 py-3 text-[11px] font-medium transition-colors"
-          :class="subView === tab.id ? 'text-board-accent' : 'text-zinc-500'"
+          :class="subView === tab.id ? 'text-board-accent' : 'text-fg-muted'"
           @click="subView = tab.id"
         >
           <span class="text-base leading-none">{{ tab.icon }}</span>
@@ -159,7 +159,7 @@ function callGame() {
         </button>
         <button
           v-if="game.status === 'active'"
-          class="flex flex-1 flex-col items-center gap-0.5 py-3 text-[11px] font-medium text-zinc-500"
+          class="flex flex-1 flex-col items-center gap-0.5 py-3 text-[11px] font-medium text-fg-muted"
           @click="nextTurn({ gameId: game._id })"
         >
           <span class="text-base leading-none">⏭</span>

@@ -96,10 +96,10 @@ function cast(card: (typeof filtered.value)[number]) {
 <template>
   <div>
     <button
-      class="flex w-full items-center justify-center gap-2 rounded-xl border border-board-edge py-3 text-sm text-zinc-400 transition-colors active:bg-board-panel"
+      class="flex w-full items-center justify-center gap-2 rounded-xl border border-board-edge py-3 text-sm text-fg-tertiary transition-colors active:bg-board-panel"
       @click="open = true"
     >
-      <span class="text-zinc-600">▤</span>
+      <span class="text-fg-subtle">▤</span>
       {{ deckName ? `Play from ${deckName}` : 'Play from your deck' }}
     </button>
 
@@ -111,9 +111,9 @@ function cast(card: (typeof filtered.value)[number]) {
             type="search"
             autofocus
             placeholder="Filter your deck…"
-            class="flex-1 rounded-xl border border-board-edge bg-board-panel px-4 py-3 text-base outline-none focus:border-board-accent"
+            class="flex-1 rounded-xl border border-board-edge-strong bg-board-panel px-4 py-3 text-base outline-none focus:border-board-accent"
           />
-          <button class="px-3 text-sm text-zinc-400" @click="open = false">
+          <button class="px-3 text-sm text-fg-tertiary" @click="open = false">
             Done
           </button>
         </div>
@@ -121,38 +121,38 @@ function cast(card: (typeof filtered.value)[number]) {
         <div
           class="flex items-center justify-between border-b border-board-edge px-4 py-2"
         >
-          <span class="truncate text-[11px] text-zinc-500">
+          <span class="truncate text-[11px] text-fg-muted">
             {{ deckName ?? 'Your deck' }}
           </span>
-          <span class="shrink-0 text-[11px] tabular-nums text-zinc-600">
+          <span class="shrink-0 text-[11px] tabular-nums text-fg-subtle">
             {{ shownTotal }} of {{ total }}
           </span>
         </div>
 
         <div class="flex-1 overflow-y-auto p-3">
-          <p v-if="loading" class="py-6 text-center text-xs text-zinc-600">
+          <p v-if="loading" class="py-6 text-center text-xs text-fg-subtle">
             Loading your deck…
           </p>
           <p
             v-else-if="!cards?.length"
-            class="py-6 text-center text-xs text-zinc-600"
+            class="py-6 text-center text-xs text-fg-subtle"
           >
             This deck has no card list saved. Import it from Archidekt to play
             from it.
           </p>
           <p
             v-else-if="!filtered.length"
-            class="py-6 text-center text-xs text-zinc-600"
+            class="py-6 text-center text-xs text-fg-subtle"
           >
             Nothing in your deck matched.
           </p>
 
           <section v-for="section in sections" :key="section.name" class="mb-5">
             <h3
-              class="mb-2 flex items-baseline gap-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500"
+              class="mb-2 flex items-baseline gap-2 text-[11px] font-medium uppercase tracking-wide text-fg-muted"
             >
               {{ section.name }}
-              <span class="text-zinc-700">{{ section.cards.length }}</span>
+              <span class="text-fg-subtle">{{ section.cards.length }}</span>
             </h3>
             <ul class="flex flex-col gap-1">
               <li v-for="card in section.cards" :key="card.scryfallId">
@@ -175,7 +175,7 @@ function cast(card: (typeof filtered.value)[number]) {
                     <span class="block truncate text-sm">{{ card.name }}</span>
                     <span
                       v-if="card.typeLine"
-                      class="block truncate text-[11px] text-zinc-600"
+                      class="block truncate text-[11px] text-fg-subtle"
                     >
                       {{ card.typeLine }}
                     </span>
@@ -183,7 +183,7 @@ function cast(card: (typeof filtered.value)[number]) {
                   <span class="flex shrink-0 flex-col items-end gap-0.5">
                     <span
                       v-if="card.quantity > 1"
-                      class="text-[11px] tabular-nums text-zinc-600"
+                      class="text-[11px] tabular-nums text-fg-subtle"
                     >
                       ×{{ card.quantity }}
                     </span>

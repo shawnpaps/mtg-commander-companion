@@ -1,10 +1,40 @@
 @import "tailwindcss";
 
 @theme {
+  /* Surfaces. The panel sits a little further off the board than it used to, so
+     a card or sheet reads as raised rather than as a slightly different black. */
   --color-board-bg: #0a0a0f;
-  --color-board-panel: #14141c;
-  --color-board-edge: #262633;
+  --color-board-panel: #181821;
+  --color-board-edge: #3c3b47;
+  /* For borders that are the only affordance — inputs, outline buttons — where a
+     hairline needs to clear 3:1 against the surface behind it. */
+  --color-board-edge-strong: #666574;
   --color-board-accent: #a78bfa;
+
+  /* Foreground tiers, in descending emphasis.
+
+     These replace raw `text-zinc-*`. The old scale bottomed out at zinc-600/700,
+     which measured 1.75–2.37:1 on the panel — well under the 4.5:1 WCAG AA needs
+     for the small type this UI is built from. Every tier below now clears 4.5:1
+     against the panel, which is the worse of the two surfaces, while keeping the
+     five steps of hierarchy the design was already using.
+
+     Chroma ramps up as the tiers get quieter (hue 285.9, matching the accent):
+     near-white stays neutral, and the quiet greys pick up a faint violet so they
+     read as part of this palette rather than as default zinc. */
+  --color-fg: #f3f3f8; /* 15.9:1 — headings, card names */
+  --color-fg-secondary: #d0d0d8; /* 11.5:1 — body copy */
+  --color-fg-tertiary: #b3b3c0; /*  8.5:1 — labels, active nav */
+  --color-fg-muted: #9695a5; /*  6.0:1 — secondary detail */
+  --color-fg-subtle: #818191; /*  4.6:1 — the quietest legible tier */
+}
+
+html {
+  /* This app is dark in every state, so declare it. Without this the UA picks
+     defaults from the OS preference — form controls, scrollbars, and the default
+     text colour all flip — and anything portaled outside #app that inherits its
+     colour (Clerk's modals) inherits the wrong one. */
+  color-scheme: dark;
 }
 
 html,
@@ -14,6 +44,9 @@ body,
 }
 
 body {
+  /* Give `inherit` something correct to land on rather than the UA default. */
+  background-color: var(--color-board-bg);
+  color: var(--color-fg);
   /* Phone-first: no rubber-banding, respect the notch. */
   overscroll-behavior-y: none;
   padding-bottom: env(safe-area-inset-bottom);

@@ -30,12 +30,12 @@ async function share() {
       <span class="font-mono text-sm tracking-[0.2em] text-board-accent">
         {{ code }}
       </span>
-      <span class="text-[10px] uppercase text-zinc-500">
+      <span class="text-[10px] uppercase text-fg-muted">
         {{ copied ? 'copied' : 'share' }}
       </span>
     </button>
     <button
-      class="text-xs text-zinc-600 hover:text-zinc-400"
+      class="text-xs text-fg-subtle hover:text-fg-tertiary"
       title="Leave game"
       @click="leaveGame()"
     >

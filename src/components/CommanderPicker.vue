@@ -47,23 +47,23 @@ function pick(result: SearchResult) {
         />
         <span
           v-else
-          class="flex h-full w-full items-center justify-center text-[10px] text-zinc-600"
+          class="flex h-full w-full items-center justify-center text-[10px] text-fg-subtle"
         >
           ?
         </span>
       </div>
 
       <div class="min-w-0 flex-1">
-        <p class="text-[10px] uppercase tracking-wide text-zinc-500">
+        <p class="text-[10px] uppercase tracking-wide text-fg-muted">
           Commander
         </p>
         <p v-if="commander" class="truncate text-sm font-medium">
           {{ commander.name }}
         </p>
-        <p v-else class="text-sm text-zinc-500">Not set yet</p>
+        <p v-else class="text-sm text-fg-muted">Not set yet</p>
         <p
           v-if="commander?.typeLine"
-          class="truncate text-[11px] text-zinc-600"
+          class="truncate text-[11px] text-fg-subtle"
         >
           {{ commander.typeLine }}
         </p>

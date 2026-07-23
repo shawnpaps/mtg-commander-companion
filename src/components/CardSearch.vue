@@ -70,7 +70,7 @@ function choose(result: SearchResult) {
       :class="
         variant === 'solid'
           ? 'bg-board-accent font-semibold text-zinc-950'
-          : 'border border-dashed border-board-edge text-zinc-500'
+          : 'border border-dashed border-board-edge text-fg-muted'
       "
       :disabled="disabled"
       @click="open = true"
@@ -86,20 +86,20 @@ function choose(result: SearchResult) {
             type="search"
             autofocus
             :placeholder="placeholder ?? 'Search Scryfall…'"
-            class="flex-1 rounded-xl border border-board-edge bg-board-panel px-4 py-3 text-base outline-none focus:border-board-accent"
+            class="flex-1 rounded-xl border border-board-edge-strong bg-board-panel px-4 py-3 text-base outline-none focus:border-board-accent"
           />
-          <button class="px-3 text-sm text-zinc-400" @click="open = false">
+          <button class="px-3 text-sm text-fg-tertiary" @click="open = false">
             Cancel
           </button>
         </div>
 
         <div class="flex-1 overflow-y-auto p-3">
-          <p v-if="loading" class="py-6 text-center text-xs text-zinc-600">
+          <p v-if="loading" class="py-6 text-center text-xs text-fg-subtle">
             Searching…
           </p>
           <p
             v-else-if="term.trim().length >= 2 && !results.length"
-            class="py-6 text-center text-xs text-zinc-600"
+            class="py-6 text-center text-xs text-fg-subtle"
           >
             No cards matched.
           </p>
@@ -123,7 +123,7 @@ function choose(result: SearchResult) {
                   <span class="block truncate text-sm">{{ result.name }}</span>
                   <span
                     v-if="result.typeLine"
-                    class="block truncate text-[11px] text-zinc-600"
+                    class="block truncate text-[11px] text-fg-subtle"
                   >
                     {{ result.typeLine }}
                   </span>

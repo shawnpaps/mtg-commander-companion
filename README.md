@@ -50,6 +50,24 @@ every account-scoped query keeps returning `null`:
    between the dev and production Clerk instances — so set it separately on each
    Convex deployment.
 
+**Theming Clerk.** `appearance.variables` in `src/main.ts` is not type-checked:
+`@clerk/vue` imports the `Appearance` type from `@clerk/ui`, which isn't a
+dependency, so unknown keys are accepted and silently dropped. Two consequences
+worth knowing before editing it:
+
+- Use the current names — `colorForeground`, `colorMutedForeground`, `colorInput`,
+  `colorInputForeground`. The legacy `colorText` / `colorTextSecondary` /
+  `colorInputText` / `colorInputBackground` do nothing. `colorForeground` defaults
+  to `inherit`, so getting its name wrong means the modal picks up the page's text
+  colour and turns unreadable when the OS prefers dark.
+- `colorNeutral` seeds derived borders, hover fills, and dropdown highlights. It
+  defaults to `black` for light themes and must be `white` here.
+
+To verify names against the source, `npm i -D @clerk/ui` and read
+`dist/internal/appearance.d.ts` — then uninstall it. Left installed, `@clerk/vue`
+resolves `appearance` as `Appearance<Ui>`, which is the wrong shape and fails the
+build.
+
 | Script | What it does |
 | --- | --- |
 | `npm run dev` | Vite dev server |
@@ -260,6 +278,34 @@ src/
                   ShareGameCode, UndoButton, CardSearch, CommanderPicker,
                   AuthControls, EndGameSheet, DeckList
 ```
+
+### Palette
+
+Tokens live in `src/style.css` under `@theme`. Text uses the five `--color-fg-*`
+tiers rather than raw `text-zinc-*`:
+
+| Token | Hex | vs panel | Use |
+| --- | --- | --- | --- |
+| `text-fg` | `#f3f3f8` | 15.9:1 | headings, card names |
+| `text-fg-secondary` | `#d0d0d8` | 11.5:1 | body copy |
+| `text-fg-tertiary` | `#b3b3c0` | 8.5:1 | labels, active nav |
+| `text-fg-muted` | `#9695a5` | 6.0:1 | secondary detail |
+| `text-fg-subtle` | `#818191` | 4.6:1 | quietest legible tier |
+
+**Don't reach for `text-zinc-*` for text.** The scale this replaced bottomed out
+at `zinc-600`/`zinc-700`, which measure 2.37:1 and 1.75:1 on the panel — far under
+the 4.5:1 WCAG AA wants, and this UI is built almost entirely from `text-xs` and
+smaller, where that floor applies. Every tier above clears 4.5:1 against the
+panel, which is the worse of the two surfaces. Chroma rises as the tiers get
+quieter (hue 285.9, shared with the accent) so the greys read as part of this
+palette rather than as default zinc.
+
+`border-board-edge` is decorative structure. Use `border-board-edge-strong`
+(3.09:1) where a border is the only thing marking a control — inputs and outline
+buttons.
+
+`--color-fg` and the surfaces are also set on `body`, and `html` declares
+`color-scheme: dark`, so anything portaled outside `#app` inherits sane values.
 
 ### Zones and the battlefield
 

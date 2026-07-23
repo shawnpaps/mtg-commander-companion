@@ -23,7 +23,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <main class="min-h-full bg-board-bg text-zinc-100">
+  <main class="min-h-full bg-board-bg text-fg">
     <div
       v-if="error"
       class="flex min-h-screen items-center justify-center p-6 text-center"
@@ -37,7 +37,7 @@ onMounted(async () => {
       v-else-if="!sessionId"
       class="flex min-h-screen items-center justify-center"
     >
-      <p class="animate-pulse text-sm text-zinc-500">Connecting…</p>
+      <p class="animate-pulse text-sm text-fg-muted">Connecting…</p>
     </div>
 
     <ProfileView v-else-if="showProfile" @close="showProfile = false" />

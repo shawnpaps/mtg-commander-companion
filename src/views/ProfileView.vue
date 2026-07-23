@@ -82,7 +82,7 @@ function recordFor(deckId: string) {
   <div class="mx-auto flex min-h-screen w-full max-w-md flex-col px-5 py-6 sm:max-w-lg">
     <header class="mb-6 flex items-center justify-between">
       <button
-        class="text-sm text-zinc-500 hover:text-zinc-300"
+        class="text-sm text-fg-muted hover:text-fg-secondary"
         @click="emit('close')"
       >
         ← Back
@@ -93,7 +93,7 @@ function recordFor(deckId: string) {
     <!-- Signed out: this whole screen is the pitch for making an account. -->
     <div v-if="!convexAuthenticated" class="mt-10 text-center">
       <h1 class="text-2xl font-semibold">Track your pod</h1>
-      <p class="mx-auto mt-3 max-w-xs text-sm text-zinc-500">
+      <p class="mx-auto mt-3 max-w-xs text-sm text-fg-muted">
         Save your decks, keep a running win/loss record, and see which commander
         actually closes games. Playing stays free without an account — you just
         won't keep any of it.
@@ -113,25 +113,25 @@ function recordFor(deckId: string) {
           <p class="text-2xl font-semibold tabular-nums text-board-accent">
             {{ record?.wins ?? 0 }}
           </p>
-          <p class="text-[10px] uppercase tracking-wide text-zinc-500">Wins</p>
+          <p class="text-[10px] uppercase tracking-wide text-fg-muted">Wins</p>
         </div>
         <div class="rounded-xl border border-board-edge bg-board-panel p-3 text-center">
-          <p class="text-2xl font-semibold tabular-nums text-zinc-300">
+          <p class="text-2xl font-semibold tabular-nums text-fg-secondary">
             {{ record?.losses ?? 0 }}
           </p>
-          <p class="text-[10px] uppercase tracking-wide text-zinc-500">Losses</p>
+          <p class="text-[10px] uppercase tracking-wide text-fg-muted">Losses</p>
         </div>
         <div class="rounded-xl border border-board-edge bg-board-panel p-3 text-center">
-          <p class="text-2xl font-semibold tabular-nums text-zinc-300">
+          <p class="text-2xl font-semibold tabular-nums text-fg-secondary">
             {{ winRate === null ? '—' : `${winRate}%` }}
           </p>
-          <p class="text-[10px] uppercase tracking-wide text-zinc-500">Win rate</p>
+          <p class="text-[10px] uppercase tracking-wide text-fg-muted">Win rate</p>
         </div>
       </div>
 
       <!-- Decks -->
       <section class="mt-8">
-        <h2 class="text-xs font-medium uppercase tracking-wide text-zinc-500">
+        <h2 class="text-xs font-medium uppercase tracking-wide text-fg-muted">
           Decks
         </h2>
 
@@ -141,16 +141,16 @@ function recordFor(deckId: string) {
             type="url"
             inputmode="url"
             placeholder="archidekt.com/decks/123456"
-            class="rounded-xl border border-board-edge bg-board-panel px-4 py-3 text-sm outline-none focus:border-board-accent"
+            class="rounded-xl border border-board-edge-strong bg-board-panel px-4 py-3 text-sm outline-none focus:border-board-accent"
           />
           <input
             v-if="showManual || isMoxfield"
             v-model="manualName"
             type="text"
             placeholder="Deck name"
-            class="rounded-xl border border-board-edge bg-board-panel px-4 py-3 text-sm outline-none focus:border-board-accent"
+            class="rounded-xl border border-board-edge-strong bg-board-panel px-4 py-3 text-sm outline-none focus:border-board-accent"
           />
-          <p v-if="isMoxfield" class="text-xs text-zinc-600">
+          <p v-if="isMoxfield" class="text-xs text-fg-subtle">
             Moxfield doesn't offer a public API, so we'll save the link and the
             name rather than the full list.
           </p>
@@ -172,7 +172,7 @@ function recordFor(deckId: string) {
           >
             <div class="min-w-0 flex-1">
               <p class="truncate text-sm font-medium">{{ deck.name }}</p>
-              <p class="truncate text-xs text-zinc-500">
+              <p class="truncate text-xs text-fg-muted">
                 {{ deck.commanderName ?? deck.source }}
                 <template v-if="deck.cardCount"> · {{ deck.cardCount }} cards</template>
                 <template v-if="recordFor(deck._id)">
@@ -186,26 +186,26 @@ function recordFor(deckId: string) {
               :href="deck.sourceUrl"
               target="_blank"
               rel="noreferrer noopener"
-              class="text-xs text-zinc-600 hover:text-board-accent"
+              class="text-xs text-fg-subtle hover:text-board-accent"
             >
               open
             </a>
             <button
-              class="text-xs text-zinc-600 hover:text-red-400"
+              class="text-xs text-fg-subtle hover:text-red-400"
               @click="deleteDeck({ deckId: deck._id })"
             >
               remove
             </button>
           </li>
         </ul>
-        <p v-else class="mt-4 text-xs text-zinc-600">
+        <p v-else class="mt-4 text-xs text-fg-subtle">
           No decks yet. Paste an Archidekt URL above.
         </p>
       </section>
 
       <!-- History -->
       <section class="mt-8 pb-10">
-        <h2 class="text-xs font-medium uppercase tracking-wide text-zinc-500">
+        <h2 class="text-xs font-medium uppercase tracking-wide text-fg-muted">
           Recent games
         </h2>
         <ul v-if="history?.length" class="mt-3 flex flex-col gap-1.5">
@@ -216,7 +216,7 @@ function recordFor(deckId: string) {
           >
             <span
               class="w-6 text-center text-xs font-bold"
-              :class="game.won ? 'text-board-accent' : 'text-zinc-600'"
+              :class="game.won ? 'text-board-accent' : 'text-fg-subtle'"
             >
               {{ game.won ? 'W' : 'L' }}
             </span>
@@ -224,19 +224,19 @@ function recordFor(deckId: string) {
               <p class="truncate text-sm">
                 {{ game.won ? 'Won' : `Lost to ${game.winnerName ?? '—'}` }}
               </p>
-              <p class="truncate text-xs text-zinc-600">
+              <p class="truncate text-xs text-fg-subtle">
                 {{ game.format }} · {{ game.opponentCount }} opponents
                 <template v-if="game.commanderName">
                   · {{ game.commanderName }}
                 </template>
               </p>
             </div>
-            <span class="font-mono text-[10px] text-zinc-700">
+            <span class="font-mono text-[10px] text-fg-subtle">
               {{ game.code }}
             </span>
           </li>
         </ul>
-        <p v-else class="mt-3 text-xs text-zinc-600">
+        <p v-else class="mt-3 text-xs text-fg-subtle">
           No finished games yet. Your record fills in as your pod votes on
           winners.
         </p>
