@@ -2,8 +2,9 @@
 import { computed, ref } from "vue";
 import { api } from "@convex/_generated/api";
 import { useQuery, useMutation, useAction } from "../lib/useConvex";
-import { convexAuthenticated } from "../lib/auth";
+import { convexAuthenticated, isSignedIn } from "../lib/auth";
 import AuthControls from "../components/AuthControls.vue";
+import type { Id } from "@convex/_generated/dataModel";
 
 const emit = defineEmits<{ close: [] }>();
 
@@ -76,6 +77,32 @@ async function submitImport() {
 function recordFor(deckId: string) {
   return deckRecords.value?.[deckId] ?? null;
 }
+
+// Removing a deck is one tap away from "open" on a phone, and an import can be
+// 100 cards, so it takes a second tap to confirm. Reverts on its own rather than
+// leaving a live destructive control sitting in the row.
+const pendingRemove = ref<Id<"decks"> | null>(null);
+let revertTimer: ReturnType<typeof setTimeout> | undefined;
+
+function askRemove(deckId: Id<"decks">) {
+  clearTimeout(revertTimer);
+  pendingRemove.value = deckId;
+  revertTimer = setTimeout(() => (pendingRemove.value = null), 5000);
+}
+
+function cancelRemove() {
+  clearTimeout(revertTimer);
+  pendingRemove.value = null;
+}
+
+async function confirmRemove(deckId: Id<"decks">) {
+  cancelRemove();
+  try {
+    await deleteDeck({ deckId });
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : String(e);
+  }
+}
 </script>
 
 <template>
@@ -91,7 +118,7 @@ function recordFor(deckId: string) {
     </header>
 
     <!-- Signed out: this whole screen is the pitch for making an account. -->
-    <div v-if="!convexAuthenticated" class="mt-10 text-center">
+    <div v-if="!isSignedIn" class="mt-10 text-center">
       <h1 class="text-2xl font-semibold">Track your pod</h1>
       <p class="mx-auto mt-3 max-w-xs text-sm text-fg-muted">
         Save your decks, keep a running win/loss record, and see which commander
@@ -101,6 +128,13 @@ function recordFor(deckId: string) {
       <div class="mt-6 flex justify-center">
         <AuthControls />
       </div>
+    </div>
+
+    <!-- Signed in with Clerk, but Convex hasn't accepted the token yet. Every
+         query below is account-scoped and would read as empty, so say we're
+         still connecting rather than show an empty record. -->
+    <div v-else-if="!convexAuthenticated" class="mt-16 text-center">
+      <p class="animate-pulse text-sm text-fg-muted">Loading your decks…</p>
     </div>
 
     <template v-else>
@@ -161,7 +195,7 @@ function recordFor(deckId: string) {
           >
             {{ busy ? 'Importing…' : 'Import deck' }}
           </button>
-          <p v-if="error" class="text-xs text-red-400">{{ error }}</p>
+          <p v-if="error" class="text-xs text-danger">{{ error }}</p>
         </form>
 
         <ul v-if="decks?.length" class="mt-4 flex flex-col gap-2">
@@ -181,21 +215,47 @@ function recordFor(deckId: string) {
                 </template>
               </p>
             </div>
-            <a
-              v-if="deck.sourceUrl"
-              :href="deck.sourceUrl"
-              target="_blank"
-              rel="noreferrer noopener"
-              class="text-xs text-fg-subtle hover:text-board-accent"
-            >
-              open
-            </a>
-            <button
-              class="text-xs text-fg-subtle hover:text-red-400"
-              @click="deleteDeck({ deckId: deck._id })"
-            >
-              remove
-            </button>
+            <div class="flex shrink-0 items-center gap-3">
+              <template v-if="pendingRemove === deck._id">
+                <span class="text-xs text-fg-muted">
+                  {{
+                    recordFor(deck._id)
+                      ? 'Remove? Its game history stays on your record.'
+                      : 'Remove?'
+                  }}
+                </span>
+                <button
+                  class="text-xs font-medium text-danger"
+                  @click="confirmRemove(deck._id)"
+                >
+                  Remove
+                </button>
+                <button
+                  class="text-xs text-fg-tertiary"
+                  @click="cancelRemove()"
+                >
+                  Cancel
+                </button>
+              </template>
+
+              <template v-else>
+                <a
+                  v-if="deck.sourceUrl"
+                  :href="deck.sourceUrl"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  class="text-xs text-fg-subtle hover:text-board-accent"
+                >
+                  open
+                </a>
+                <button
+                  class="text-xs text-fg-subtle hover:text-danger"
+                  @click="askRemove(deck._id)"
+                >
+                  remove
+                </button>
+              </template>
+            </div>
           </li>
         </ul>
         <p v-else class="mt-4 text-xs text-fg-subtle">
