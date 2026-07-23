@@ -11,12 +11,15 @@
 import type * as admin from "../admin.js";
 import type * as cardCache from "../cardCache.js";
 import type * as cards from "../cards.js";
+import type * as decks from "../decks.js";
 import type * as games from "../games.js";
 import type * as log from "../log.js";
 import type * as players from "../players.js";
+import type * as results from "../results.js";
 import type * as scryfall from "../scryfall.js";
 import type * as sessions from "../sessions.js";
 import type * as undo from "../undo.js";
+import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -28,12 +31,15 @@ declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   cardCache: typeof cardCache;
   cards: typeof cards;
+  decks: typeof decks;
   games: typeof games;
   log: typeof log;
   players: typeof players;
+  results: typeof results;
   scryfall: typeof scryfall;
   sessions: typeof sessions;
   undo: typeof undo;
+  users: typeof users;
 }>;
 
 /**

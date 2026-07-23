@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { api } from "@convex/_generated/api";
-import { useMutation } from "../lib/useConvex";
+import { useMutation, useQuery } from "../lib/useConvex";
 import { sessionId, displayName, setDisplayName } from "../lib/session";
-import { enterGame } from "../lib/store";
+import { enterGame, showProfile } from "../lib/store";
+import { convexAuthenticated } from "../lib/auth";
+import AuthControls from "../components/AuthControls.vue";
+import type { Id } from "@convex/_generated/dataModel";
 
 type Format = "commander" | "standard" | "modern" | "draft";
 
@@ -24,6 +27,22 @@ const playerCount = ref(4);
 const joinCode = ref("");
 const busy = ref(false);
 const error = ref<string | null>(null);
+const deckId = ref<Id<"decks"> | null>(null);
+
+const decks = useQuery(api.decks.listMyDecks, () =>
+  convexAuthenticated.value ? {} : null,
+);
+
+// A signed-in user's account name is a better default than whatever this device
+// last typed, but never clobber a name the user is actively editing.
+const me = useQuery(api.users.me, () =>
+  convexAuthenticated.value ? {} : null,
+);
+watch(me, (value) => {
+  if (value?.user.displayName && !name.value.trim()) {
+    name.value = value.user.displayName;
+  }
+});
 
 const canSubmit = computed(
   () =>
@@ -54,6 +73,7 @@ async function submit() {
         code: created.code,
         name: name.value.trim(),
         sessionId: sessionId.value,
+        deckId: deckId.value ?? undefined,
       });
       enterGame(created.code, joined.playerId);
     } else {
@@ -61,6 +81,7 @@ async function submit() {
         code: joinCode.value.trim().toUpperCase(),
         name: name.value.trim(),
         sessionId: sessionId.value,
+        deckId: deckId.value ?? undefined,
       });
       enterGame(joinCode.value.trim().toUpperCase(), joined.playerId);
     }
@@ -74,14 +95,38 @@ async function submit() {
 
 <template>
   <div class="mx-auto flex min-h-screen w-full max-w-md flex-col px-5 py-10 sm:max-w-lg">
-    <header class="mb-10">
+    <header class="mb-8">
+      <div class="mb-6 flex items-center justify-between">
+        <button
+          v-if="convexAuthenticated"
+          class="text-xs text-zinc-500 hover:text-zinc-300"
+          @click="showProfile = true"
+        >
+          Decks &amp; record
+        </button>
+        <span v-else />
+        <AuthControls />
+      </div>
+
       <h1 class="text-3xl font-semibold tracking-tight">
         Board<span class="text-board-accent">State</span>
       </h1>
       <p class="mt-1 text-sm text-zinc-500">
-        Shared board for the table. No accounts, just a code.
+        Shared board for the table. Jump in with a code — no account needed.
       </p>
     </header>
+
+    <!-- The account pitch, stated once and not repeated in the form below. -->
+    <div
+      v-if="!convexAuthenticated"
+      class="mb-6 rounded-xl border border-board-edge bg-board-panel px-4 py-3"
+    >
+      <p class="text-xs leading-relaxed text-zinc-400">
+        <span class="text-board-accent">Sign in for the full experience.</span>
+        Accounts save your decks and keep a running win/loss record across pods.
+        Guests can play everything — nothing gets saved.
+      </p>
+    </div>
 
     <div class="mb-6 grid grid-cols-2 gap-1 rounded-xl bg-board-panel p-1">
       <button
@@ -162,7 +207,42 @@ async function submit() {
         </div>
       </template>
 
-      <label v-else class="flex flex-col gap-2">
+      <!-- Deck choice is what makes the per-deck win rate on the profile work. -->
+      <div v-if="decks?.length" class="flex flex-col gap-2">
+        <span class="text-xs font-medium uppercase tracking-wide text-zinc-500">
+          Deck <span class="normal-case text-zinc-600">(optional)</span>
+        </span>
+        <div class="flex flex-wrap gap-2">
+          <button
+            type="button"
+            class="rounded-lg border px-3 py-2 text-xs transition-colors"
+            :class="
+              deckId === null
+                ? 'border-board-accent bg-board-accent/10 text-board-accent'
+                : 'border-board-edge bg-board-panel text-zinc-400'
+            "
+            @click="deckId = null"
+          >
+            None
+          </button>
+          <button
+            v-for="deck in decks"
+            :key="deck._id"
+            type="button"
+            class="max-w-full truncate rounded-lg border px-3 py-2 text-xs transition-colors"
+            :class="
+              deckId === deck._id
+                ? 'border-board-accent bg-board-accent/10 text-board-accent'
+                : 'border-board-edge bg-board-panel text-zinc-400'
+            "
+            @click="deckId = deck._id"
+          >
+            {{ deck.name }}
+          </button>
+        </div>
+      </div>
+
+      <label v-if="mode === 'join'" class="flex flex-col gap-2">
         <span class="text-xs font-medium uppercase tracking-wide text-zinc-500">
           Game code
         </span>

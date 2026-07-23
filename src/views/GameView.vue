@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { api } from "@convex/_generated/api";
 import { useQuery, useMutation } from "../lib/useConvex";
 import { sessionId } from "../lib/session";
@@ -9,12 +9,18 @@ import TableView from "./TableView.vue";
 import Vitals from "./Vitals.vue";
 import ShareGameCode from "../components/ShareGameCode.vue";
 import UndoButton from "../components/UndoButton.vue";
+import EndGameSheet from "../components/EndGameSheet.vue";
 
 const props = defineProps<{ code: string }>();
 
 const state = useQuery(api.games.getGame, () => ({ code: props.code }));
 const startGame = useMutation(api.games.startGame);
 const nextTurn = useMutation(api.games.nextTurn);
+const startVoting = useMutation(api.results.startVoting);
+
+// Local dismissal, so "Hide" can tuck the sheet away without cancelling the
+// vote for everyone else at the table.
+const sheetHidden = ref(false);
 
 const game = computed(() => state.value?.game ?? null);
 const players = computed(() => state.value?.players ?? []);
@@ -43,6 +49,21 @@ const TABS: Array<{ id: SubView; label: string; icon: string }> = [
   { id: "table", label: "Table", icon: "◎" },
   { id: "vitals", label: "Vitals", icon: "♥" },
 ];
+
+// A finished game always shows its result, regardless of local dismissal —
+// there's nothing left to play underneath it.
+const showEndSheet = computed(
+  () =>
+    !!game.value &&
+    (game.value.status === "finished" ||
+      (!!game.value.votingStartedAt && !sheetHidden.value)),
+);
+
+function callGame() {
+  if (!game.value) return;
+  sheetHidden.value = false;
+  void startVoting({ gameId: game.value._id });
+}
 </script>
 
 <template>
@@ -76,6 +97,13 @@ const TABS: Array<{ id: SubView; label: string; icon: string }> = [
           T{{ game.turnNumber }} · {{ turnPlayer?.name ?? '—' }}
         </span>
         <UndoButton :game-id="game._id" />
+        <button
+          v-if="game.status === 'active'"
+          class="rounded-lg border border-board-edge px-2.5 py-1.5 text-xs text-zinc-400 hover:border-board-accent hover:text-board-accent"
+          @click="callGame"
+        >
+          End
+        </button>
       </div>
     </header>
 
@@ -139,5 +167,12 @@ const TABS: Array<{ id: SubView; label: string; icon: string }> = [
         </button>
       </div>
     </nav>
+
+    <EndGameSheet
+      v-if="showEndSheet"
+      :game-id="game._id"
+      :my-player-id="playerId"
+      @close="sheetHidden = true"
+    />
   </div>
 </template>
