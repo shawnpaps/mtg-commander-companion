@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { api } from "@convex/_generated/api";
 import { useQuery, useMutation, useAction } from "../lib/useConvex";
-import { convexAuthenticated } from "../lib/auth";
+import { convexAuthenticated, isSignedIn } from "../lib/auth";
 import AuthControls from "../components/AuthControls.vue";
 
 const emit = defineEmits<{ close: [] }>();
@@ -91,7 +91,7 @@ function recordFor(deckId: string) {
     </header>
 
     <!-- Signed out: this whole screen is the pitch for making an account. -->
-    <div v-if="!convexAuthenticated" class="mt-10 text-center">
+    <div v-if="!isSignedIn" class="mt-10 text-center">
       <h1 class="text-2xl font-semibold">Track your pod</h1>
       <p class="mx-auto mt-3 max-w-xs text-sm text-fg-muted">
         Save your decks, keep a running win/loss record, and see which commander
@@ -101,6 +101,13 @@ function recordFor(deckId: string) {
       <div class="mt-6 flex justify-center">
         <AuthControls />
       </div>
+    </div>
+
+    <!-- Signed in with Clerk, but Convex hasn't accepted the token yet. Every
+         query below is account-scoped and would read as empty, so say we're
+         still connecting rather than show an empty record. -->
+    <div v-else-if="!convexAuthenticated" class="mt-16 text-center">
+      <p class="animate-pulse text-sm text-fg-muted">Loading your decks…</p>
     </div>
 
     <template v-else>

@@ -4,7 +4,7 @@ import { api } from "@convex/_generated/api";
 import { useMutation, useQuery } from "../lib/useConvex";
 import { sessionId, displayName, setDisplayName } from "../lib/session";
 import { enterGame, showProfile } from "../lib/store";
-import { convexAuthenticated } from "../lib/auth";
+import { convexAuthenticated, isSignedIn } from "../lib/auth";
 import AuthControls from "../components/AuthControls.vue";
 import type { Id } from "@convex/_generated/dataModel";
 
@@ -96,13 +96,18 @@ async function submit() {
 <template>
   <div class="mx-auto flex min-h-screen w-full max-w-md flex-col px-5 py-10 sm:max-w-lg">
     <header class="mb-8">
-      <div class="mb-6 flex items-center justify-between">
+      <div class="mb-6 flex items-center justify-between gap-2">
+        <!-- Keyed off Clerk, not the Convex handshake. The handshake lands a
+             round trip later, and gating the only way into the profile on it
+             meant a signed-in user could sit on the lobby with no route to
+             their decks. -->
         <button
-          v-if="convexAuthenticated"
-          class="text-xs text-fg-muted hover:text-fg-secondary"
+          v-if="isSignedIn"
+          class="flex items-center gap-1.5 rounded-lg border border-board-edge bg-board-panel px-3 py-1.5 text-xs font-medium text-fg-secondary transition-colors hover:border-board-accent hover:text-board-accent"
           @click="showProfile = true"
         >
-          Decks &amp; record
+          <span class="text-fg-subtle">▤</span>
+          My decks
         </button>
         <span v-else />
         <AuthControls />
@@ -118,7 +123,7 @@ async function submit() {
 
     <!-- The account pitch, stated once and not repeated in the form below. -->
     <div
-      v-if="!convexAuthenticated"
+      v-if="!isSignedIn"
       class="mb-6 rounded-xl border border-board-edge bg-board-panel px-4 py-3"
     >
       <p class="text-xs leading-relaxed text-fg-tertiary">
