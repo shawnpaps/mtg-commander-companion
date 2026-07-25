@@ -1,0 +1,33 @@
+{
+  "$comment": [
+    "Type-check only — nothing is emitted. Node runs the .ts files directly via",
+    "--experimental-strip-types, which erases types without transforming code. That",
+    "means no enums, no namespaces, no parameter properties, no decorators, and .ts",
+    "extensions on every relative import. verbatimModuleSyntax enforces the last part.",
+    "",
+    "This config is intentionally standalone: the harness must not inherit the app's",
+    "Vue/DOM setup, and nothing here should end up in the app build."
+  ],
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"],
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "isolatedModules": true,
+    "noEmit": true,
+
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*.ts"]
+}

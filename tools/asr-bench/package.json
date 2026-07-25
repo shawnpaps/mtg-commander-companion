@@ -1,0 +1,17 @@
+{
+  "name": "boardstate-asr-bench",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Research spike: does Scribe v2 realtime keyterm packing beat batch full-decklist keyterms for MTG card-name voice casting?",
+  "engines": {
+    "node": ">=22.6"
+  },
+  "scripts": {
+    "probe": "node --experimental-strip-types src/probe.ts",
+    "bench": "node --experimental-strip-types src/bench.ts",
+    "bench:dry": "node --experimental-strip-types src/bench.ts --dry-run",
+    "keyterms": "node --experimental-strip-types src/inspect-keyterms.ts",
+    "test": "node --experimental-strip-types src/selftest.ts"
+  }
+}

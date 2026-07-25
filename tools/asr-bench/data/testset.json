@@ -1,0 +1,289 @@
+{
+  "$comment": [
+    "Ground truth is the CARD (canonicalName), not the string. A condition scores a",
+    "hit when the resolver returns this card, regardless of what the ASR text was.",
+    "",
+    "spokenForms are what a player actually says at the table, including partial and",
+    "nickname forms and some disfluency. RECORDING.md turns these into the read",
+    "script; every spokenForm should get recorded at least once per speaker.",
+    "",
+    "Categories:",
+    "  baseline          phonetically clean, common English. Should need no keyterm.",
+    "  invented-noun     fabricated proper nouns with no English prior.",
+    "  homophone         collides with a common English word or phrase.",
+    "  card-collision    a wrong match here is a real gameplay error, not a typo.",
+    "  possessive        apostrophe-s forms that normalization must handle.",
+    "  nickname          the community name, which is what players say out loud.",
+    "  partial-legendary players say the first word, never the full legendary name."
+  ],
+  "cards": [
+    {
+      "canonicalName": "Lightning Bolt",
+      "category": "baseline",
+      "spokenForms": ["Lightning Bolt", "cast Lightning Bolt", "bolt", "uh, Lightning Bolt"]
+    },
+    {
+      "canonicalName": "Rampant Growth",
+      "category": "baseline",
+      "spokenForms": ["Rampant Growth", "cast Rampant Growth", "Rampant Growth for a Forest"]
+    },
+    {
+      "canonicalName": "Dark Ritual",
+      "category": "baseline",
+      "spokenForms": ["Dark Ritual", "cast Dark Ritual", "Dark Ritual into it"]
+    },
+    {
+      "canonicalName": "Brainstorm",
+      "category": "baseline",
+      "spokenForms": ["Brainstorm", "cast Brainstorm", "I'll Brainstorm"]
+    },
+    {
+      "canonicalName": "Swan Song",
+      "category": "baseline",
+      "spokenForms": ["Swan Song", "Swan Song that", "cast Swan Song"]
+    },
+    {
+      "canonicalName": "Beast Within",
+      "category": "baseline",
+      "spokenForms": ["Beast Within", "Beast Within your land", "cast Beast Within"]
+    },
+
+    {
+      "canonicalName": "Kozilek, Butcher of Truth",
+      "category": "invented-noun",
+      "spokenForms": ["Kozilek", "cast Kozilek", "Kozilek Butcher of Truth", "Ko-zi-lek"]
+    },
+    {
+      "canonicalName": "Prossh, Skyraider of Kher",
+      "category": "invented-noun",
+      "spokenForms": ["Prossh", "cast Prossh", "Prossh Skyraider of Kher"]
+    },
+    {
+      "canonicalName": "Zedruu the Greathearted",
+      "category": "invented-noun",
+      "spokenForms": ["Zedruu", "cast Zedruu", "Zedruu the Greathearted"]
+    },
+    {
+      "canonicalName": "Najeela, the Blade-Blossom",
+      "category": "invented-noun",
+      "spokenForms": ["Najeela", "cast Najeela", "Najeela the Blade Blossom"]
+    },
+    {
+      "canonicalName": "Chulane, Teller of Tales",
+      "category": "invented-noun",
+      "spokenForms": ["Chulane", "cast Chulane", "Chulane Teller of Tales"]
+    },
+    {
+      "canonicalName": "Kaalia of the Vast",
+      "category": "invented-noun",
+      "spokenForms": ["Kaalia", "cast Kaalia", "Kaalia of the Vast"]
+    },
+    {
+      "canonicalName": "Yuriko, the Tiger's Shadow",
+      "category": "invented-noun",
+      "spokenForms": ["Yuriko", "cast Yuriko", "Yuriko the Tiger's Shadow"]
+    },
+    {
+      "canonicalName": "Ulamog, the Ceaseless Hunger",
+      "category": "invented-noun",
+      "spokenForms": ["Ulamog", "cast Ulamog", "Ulamog the Ceaseless Hunger"]
+    },
+
+    {
+      "canonicalName": "Sol Ring",
+      "category": "homophone",
+      "spokenForms": ["Sol Ring", "soul ring", "cast Sol Ring", "uh, cast, uh, Sol Ring"]
+    },
+    {
+      "canonicalName": "Mana Crypt",
+      "category": "homophone",
+      "spokenForms": ["Mana Crypt", "manor crypt", "cast Mana Crypt"]
+    },
+    {
+      "canonicalName": "Wrath of God",
+      "category": "homophone",
+      "spokenForms": ["Wrath of God", "rath of god", "cast Wrath of God"]
+    },
+    {
+      "canonicalName": "Nicol Bolas, the Ravager",
+      "category": "homophone",
+      "spokenForms": ["Nicol Bolas", "nickel bowlus", "Nicol Bolas the Ravager", "Nickel Bolas"]
+    },
+    {
+      "canonicalName": "Rhystic Study",
+      "category": "homophone",
+      "spokenForms": ["Rhystic Study", "ristic study", "mystic study", "do you pay the one"]
+    },
+    {
+      "canonicalName": "Aetherflux Reservoir",
+      "category": "homophone",
+      "spokenForms": ["Aetherflux Reservoir", "ether flux reservoir", "Aetherflux"]
+    },
+
+    {
+      "canonicalName": "Cultivate",
+      "category": "card-collision",
+      "spokenForms": ["Cultivate", "cast Cultivate", "Cultivate for a Forest"],
+      "collidesWith": "Cultivator Colossus"
+    },
+    {
+      "canonicalName": "Cultivator Colossus",
+      "category": "card-collision",
+      "spokenForms": ["Cultivator Colossus", "cast Cultivator Colossus", "Cultivator"],
+      "collidesWith": "Cultivate"
+    },
+    {
+      "canonicalName": "Counterspell",
+      "category": "card-collision",
+      "spokenForms": ["Counterspell", "Counterspell that", "cast Counterspell"],
+      "collidesWith": "Counterflux"
+    },
+    {
+      "canonicalName": "Counterflux",
+      "category": "card-collision",
+      "spokenForms": ["Counterflux", "cast Counterflux", "Counterflux, overloaded"],
+      "collidesWith": "Counterspell"
+    },
+    {
+      "canonicalName": "Swords to Plowshares",
+      "category": "card-collision",
+      "spokenForms": ["Swords to Plowshares", "Swords", "cast Swords to Plowshares"],
+      "collidesWith": "Sword of Feast and Famine"
+    },
+    {
+      "canonicalName": "Sword of Feast and Famine",
+      "category": "card-collision",
+      "spokenForms": ["Sword of Feast and Famine", "Sword of Feast", "equip Sword of Feast and Famine"],
+      "collidesWith": "Swords to Plowshares"
+    },
+    {
+      "canonicalName": "Path to Exile",
+      "category": "card-collision",
+      "spokenForms": ["Path to Exile", "Path", "cast Path to Exile"],
+      "collidesWith": "Pathbreaker Ibex"
+    },
+    {
+      "canonicalName": "Pathbreaker Ibex",
+      "category": "card-collision",
+      "spokenForms": ["Pathbreaker Ibex", "Pathbreaker", "cast Pathbreaker Ibex"],
+      "collidesWith": "Path to Exile"
+    },
+    {
+      "canonicalName": "Fierce Guardianship",
+      "category": "card-collision",
+      "spokenForms": ["Fierce Guardianship", "free Fierce Guardianship", "cast Fierce Guardianship"],
+      "collidesWith": "Fierce Empath"
+    },
+    {
+      "canonicalName": "Fierce Empath",
+      "category": "card-collision",
+      "spokenForms": ["Fierce Empath", "cast Fierce Empath"],
+      "collidesWith": "Fierce Guardianship"
+    },
+    {
+      "canonicalName": "Tithe",
+      "category": "card-collision",
+      "spokenForms": ["Tithe", "cast Tithe"],
+      "collidesWith": "Smothering Tithe"
+    },
+    {
+      "canonicalName": "Smothering Tithe",
+      "category": "card-collision",
+      "spokenForms": ["Smothering Tithe", "cast Smothering Tithe", "Smothering"],
+      "collidesWith": "Tithe"
+    },
+
+    {
+      "canonicalName": "Atraxa, Praetors' Voice",
+      "category": "possessive",
+      "spokenForms": ["Atraxa", "Atraxa Praetors' Voice", "cast Atraxa", "Atraxa, Praetors Voice"]
+    },
+    {
+      "canonicalName": "Gaea's Cradle",
+      "category": "possessive",
+      "spokenForms": ["Gaea's Cradle", "Gaeas Cradle", "tap Gaea's Cradle", "Gias Cradle"]
+    },
+    {
+      "canonicalName": "Urza's Saga",
+      "category": "possessive",
+      "spokenForms": ["Urza's Saga", "Urzas Saga", "play Urza's Saga"]
+    },
+    {
+      "canonicalName": "Jeska's Will",
+      "category": "possessive",
+      "spokenForms": ["Jeska's Will", "Jeskas Will", "cast Jeska's Will"]
+    },
+    {
+      "canonicalName": "Krark's Thumb",
+      "category": "possessive",
+      "spokenForms": ["Krark's Thumb", "Krarks Thumb", "cast Krark's Thumb"]
+    },
+    {
+      "canonicalName": "Teferi's Protection",
+      "category": "possessive",
+      "spokenForms": ["Teferi's Protection", "Teferis Protection", "cast Teferi's Protection", "T Pro"]
+    },
+
+    {
+      "canonicalName": "Thassa's Oracle",
+      "category": "nickname",
+      "spokenForms": ["Thoracle", "Thassa's Oracle", "cast Thoracle"]
+    },
+    {
+      "canonicalName": "Dockside Extortionist",
+      "category": "nickname",
+      "spokenForms": ["Dockside", "Dockside Extortionist", "cast Dockside"]
+    },
+    {
+      "canonicalName": "Cyclonic Rift",
+      "category": "nickname",
+      "spokenForms": ["Cyc Rift", "Cyclonic Rift", "overloaded Cyc Rift", "Sike Rift"]
+    },
+    {
+      "canonicalName": "Craterhoof Behemoth",
+      "category": "nickname",
+      "spokenForms": ["Hoof", "Craterhoof", "Craterhoof Behemoth", "cast Hoof"]
+    },
+    {
+      "canonicalName": "Demonic Tutor",
+      "category": "nickname",
+      "spokenForms": ["Dem Tutor", "Demonic Tutor", "cast Dem Tutor"]
+    },
+    {
+      "canonicalName": "Birds of Paradise",
+      "category": "nickname",
+      "spokenForms": ["Birds", "Birds of Paradise", "cast Birds"]
+    },
+
+    {
+      "canonicalName": "Korvold, Fae-Cursed King",
+      "category": "partial-legendary",
+      "spokenForms": ["Korvold", "cast Korvold", "Korvold Fae Cursed King"]
+    },
+    {
+      "canonicalName": "Edgar Markov",
+      "category": "partial-legendary",
+      "spokenForms": ["Edgar", "Edgar Markov", "cast Edgar"]
+    },
+    {
+      "canonicalName": "Muldrotha, the Gravetide",
+      "category": "partial-legendary",
+      "spokenForms": ["Muldrotha", "cast Muldrotha", "Muldrotha the Gravetide"]
+    },
+    {
+      "canonicalName": "Kenrith, the Returned King",
+      "category": "partial-legendary",
+      "spokenForms": ["Kenrith", "cast Kenrith", "Kenrith the Returned King"]
+    },
+    {
+      "canonicalName": "Tymna the Weaver",
+      "category": "partial-legendary",
+      "spokenForms": ["Tymna", "cast Tymna", "Tymna the Weaver"]
+    },
+    {
+      "canonicalName": "Winota, Joiner of Forces",
+      "category": "partial-legendary",
+      "spokenForms": ["Winota", "cast Winota", "Winota Joiner of Forces"]
+    }
+  ]
+}

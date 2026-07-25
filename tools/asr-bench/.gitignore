@@ -1,0 +1,14 @@
+# Secrets
+.env
+.env.local
+
+# Recorded audio. The full set is large and contains people's voices — it stays
+# local. A few sample clips are committed under clips/samples/ (force-added) so
+# `npm run bench` is runnable on a fresh checkout.
+clips/*
+!clips/samples/
+!clips/samples/**
+
+# Generated output. Cached API responses live here; they are reproducible and
+# clip-derived, so they are not worth versioning.
+results/

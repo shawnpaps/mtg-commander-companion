@@ -1,0 +1,417 @@
+{
+  "$comment": [
+    "Confusable real cards that must sit in the candidate pool, otherwise collisions",
+    "are never exercised and top-1 accuracy is flattered. If the only 'Kozilek' in the",
+    "pool is 'Kozilek, Butcher of Truth', resolving 'Kozilek' correctly proves nothing.",
+    "",
+    "Keyed by the testset card each group threatens. Many are genuine gameplay traps:",
+    "Kozilek has two real faces, Ulamog has two, Atraxa has two, Nicol Bolas has four.",
+    "Picking the wrong one is a real error, not a cosmetic one.",
+    "",
+    "generalPool is filler that shares no strong phonetic neighbourhood with the test",
+    "set. It exists so the pool is not made up exclusively of near-misses, which would",
+    "make the scoring pathologically hard and unrepresentative of a real decklist."
+  ],
+  "confusableWith": {
+    "Kozilek, Butcher of Truth": [
+      "Kozilek, the Great Distortion",
+      "Kozilek's Predator",
+      "Kozilek's Channeler",
+      "Kozilek's Return",
+      "Kozilek's Unsealing",
+      "It That Betrays"
+    ],
+    "Ulamog, the Ceaseless Hunger": [
+      "Ulamog, the Infinite Gyre",
+      "Ulamog's Crusher",
+      "Ulamog's Nullifier",
+      "Ulamog's Despoiler",
+      "Pathrazer of Ulamog"
+    ],
+    "Prossh, Skyraider of Kher": [
+      "Kher Keep",
+      "Sek'Kuar, Deathkeeper",
+      "Korlash, Heir to Blackblade"
+    ],
+    "Zedruu the Greathearted": [
+      "Zada, Hedron Grinder",
+      "Zurgo Helmsmasher",
+      "Zur the Enchanter",
+      "Zirilan of the Claw"
+    ],
+    "Najeela, the Blade-Blossom": [
+      "Narset, Enlightened Master",
+      "Nahiri, the Harbinger",
+      "Nadier, Agent of the Duskenel",
+      "Nazahn, Revered Bladesmith"
+    ],
+    "Chulane, Teller of Tales": [
+      "Kwain, Itinerant Meddler",
+      "Shalai, Voice of Plenty",
+      "Charix, the Raging Isle",
+      "Thalia, Guardian of Thraben"
+    ],
+    "Kaalia of the Vast": [
+      "Kaalia, Zenith Seeker",
+      "Kaervek, the Merciless",
+      "Kalamax, the Stormsire",
+      "Kaya, Ghost Assassin"
+    ],
+    "Yuriko, the Tiger's Shadow": [
+      "Yusri, Fortune's Flame",
+      "Yawgmoth, Thran Physician",
+      "Yarok, the Desecrated",
+      "Yuriko's Tigers"
+    ],
+    "Sol Ring": [
+      "Solemn Simulacrum",
+      "Solitude",
+      "Soul Warden",
+      "Soul's Attendant",
+      "Soul Snare",
+      "Soul Diviner",
+      "Soul of New Phyrexia",
+      "Solar Blaze",
+      "Sol Talisman"
+    ],
+    "Mana Crypt": [
+      "Mana Vault",
+      "Mana Drain",
+      "Mana Confluence",
+      "Mana Geyser",
+      "Mana Tithe",
+      "Mana Web",
+      "Mana Reflection",
+      "Manor Gargoyle",
+      "Crypt Ghast",
+      "Crypt Rats",
+      "Crypt Incursion",
+      "Crypt of Agadeem"
+    ],
+    "Wrath of God": [
+      "Rath's Edge",
+      "Wrathful Red Dragon",
+      "Day of Judgment",
+      "Damnation",
+      "Toxic Deluge",
+      "Fumigate",
+      "Cleansing Nova"
+    ],
+    "Nicol Bolas, the Ravager": [
+      "Nicol Bolas, Planeswalker",
+      "Nicol Bolas, God-Pharaoh",
+      "Nicol Bolas, Dragon-God",
+      "Nicol Bolas, the Arisen",
+      "Bolas's Citadel",
+      "Bolas's Clutch"
+    ],
+    "Rhystic Study": [
+      "Rhystic Cave",
+      "Rhystic Deluge",
+      "Rhystic Shield",
+      "Rhystic Syphon",
+      "Rhystic Tutor",
+      "Mystic Remora",
+      "Mystic Confluence",
+      "Mystical Tutor",
+      "Mystic Sanctuary"
+    ],
+    "Aetherflux Reservoir": [
+      "Aether Vial",
+      "Aetherworks Marvel",
+      "Aether Hub",
+      "Aetherize",
+      "Aether Spellbomb",
+      "Aether Gust",
+      "Aetherblade Agent"
+    ],
+    "Cultivate": [
+      "Cultivator Drone",
+      "Nature's Lore",
+      "Kodama's Reach",
+      "Farseek",
+      "Three Visits",
+      "Skyshroud Claim",
+      "Explosive Vegetation",
+      "Circuitous Route"
+    ],
+    "Counterspell": [
+      "Countersquall",
+      "Counterbalance",
+      "Countervailing Winds",
+      "Counterlash",
+      "Countermand",
+      "Arcane Denial",
+      "Dovin's Veto",
+      "Dissipate",
+      "Dispel",
+      "Disallow"
+    ],
+    "Swords to Plowshares": [
+      "Sword of Fire and Ice",
+      "Sword of Light and Shadow",
+      "Sword of War and Peace",
+      "Sword of Body and Mind",
+      "Sword of Truth and Justice",
+      "Sword of Sinew and Steel",
+      "Sword of Hearth and Home",
+      "Sword of Vengeance",
+      "Sword of Kaldra",
+      "Sword of the Animist",
+      "Sword of the Meek"
+    ],
+    "Path to Exile": [
+      "Path of Ancestry",
+      "Path of Discovery",
+      "Pathway Arrows",
+      "Journey to Nowhere",
+      "Condemn"
+    ],
+    "Fierce Guardianship": [
+      "Fierce Witchstalker",
+      "Fierce Invocation",
+      "Deadly Rollick",
+      "Deflecting Swat",
+      "Obscuring Haze",
+      "An Offer You Can't Refuse"
+    ],
+    "Smothering Tithe": [
+      "Tithe Taker",
+      "Tithebearer Giant",
+      "Smothering Abomination",
+      "Smothering Growth",
+      "Blind Obedience"
+    ],
+    "Atraxa, Praetors' Voice": [
+      "Atraxa, Grand Unifier",
+      "Sheoldred, Whispering One",
+      "Elesh Norn, Grand Cenobite",
+      "Urabrask the Hidden",
+      "Jin-Gitaxias, Core Augur"
+    ],
+    "Gaea's Cradle": [
+      "Gaea's Blessing",
+      "Gaea's Anthem",
+      "Gaea's Touch",
+      "Gaea's Herald",
+      "Gaea's Will",
+      "Serra's Sanctum",
+      "Tolarian Academy"
+    ],
+    "Urza's Saga": [
+      "Urza's Tower",
+      "Urza's Mine",
+      "Urza's Power Plant",
+      "Urza's Incubator",
+      "Urza's Ruinous Blast",
+      "Urza, Lord High Artificer",
+      "Urza, Prince of Kroog"
+    ],
+    "Jeska's Will": [
+      "Jeska, Warrior Adept",
+      "Jeska, Thrice Reborn",
+      "Jeskai Ascendancy",
+      "Jeskai Charm",
+      "Jeskai Elder"
+    ],
+    "Krark's Thumb": [
+      "Krark, the Thumbless",
+      "Krark-Clan Ironworks",
+      "Krark-Clan Shaman",
+      "Krark-Clan Grunt"
+    ],
+    "Teferi's Protection": [
+      "Teferi's Puzzle Box",
+      "Teferi's Veil",
+      "Teferi's Response",
+      "Teferi's Time Twist",
+      "Teferi's Ageless Insight",
+      "Teferi, Hero of Dominaria",
+      "Teferi, Time Raveler",
+      "Teferi, Master of Time"
+    ],
+    "Thassa's Oracle": [
+      "Thassa, Deep-Dwelling",
+      "Thassa's Intervention",
+      "Thassa's Rebuff",
+      "Oracle of Mul Daya",
+      "Oracle en-Vec",
+      "Jace, Wielder of Mysteries",
+      "Demonic Consultation",
+      "Tainted Pact"
+    ],
+    "Dockside Extortionist": [
+      "Dockside Chef",
+      "Bootleggers' Stash",
+      "Goldspan Dragon",
+      "Treasure Nabber",
+      "Dwarven Mine"
+    ],
+    "Cyclonic Rift": [
+      "Cyclone Summoner",
+      "Psychic Rift",
+      "Rift Bolt",
+      "Riftsweeper",
+      "Cyclopean Tomb",
+      "Wash Out",
+      "Evacuation",
+      "River's Rebuke"
+    ],
+    "Craterhoof Behemoth": [
+      "Hoofprints of the Stag",
+      "Crater's Claws",
+      "Crater Hellion",
+      "Ghalta, Primal Hunger",
+      "End-Raze Forerunners",
+      "Overwhelming Stampede"
+    ],
+    "Demonic Tutor": [
+      "Demonic Bargain",
+      "Demonic Pact",
+      "Demonic Rising",
+      "Diabolic Intent",
+      "Vampiric Tutor",
+      "Imperial Seal",
+      "Grim Tutor",
+      "Enlightened Tutor",
+      "Worldly Tutor",
+      "Sylvan Tutor"
+    ],
+    "Birds of Paradise": [
+      "Bird Maiden",
+      "Baleful Strix",
+      "Noble Hierarch",
+      "Ignoble Hierarch",
+      "Sylvan Caryatid"
+    ],
+    "Korvold, Fae-Cursed King": [
+      "Korvold, Gleeful Glutton",
+      "Kolaghan, the Storm's Fury",
+      "Kroxa, Titan of Death's Hunger",
+      "Klothys, God of Destiny"
+    ],
+    "Edgar Markov": [
+      "Edgar, Charmed Groom",
+      "Markov Blademaster",
+      "Markov Patrician",
+      "Olivia Voldaren",
+      "Sorin Markov"
+    ],
+    "Muldrotha, the Gravetide": [
+      "Mulldrifter",
+      "Multani, Yavimaya's Avatar",
+      "Multani, Maro-Sorcerer",
+      "Meren of Clan Nel Toth"
+    ],
+    "Kenrith, the Returned King": [
+      "Kenrith's Transformation",
+      "Kellan, the Fae-Blooded",
+      "Kethis, the Hidden Hand",
+      "Kestia, the Cultivator"
+    ],
+    "Tymna the Weaver": [
+      "Tymaret, the Murder King",
+      "Tymaret Calls the Dead",
+      "Thrasios, Triton Hero",
+      "Tana, the Bloodsower"
+    ],
+    "Winota, Joiner of Forces": [
+      "Wilhelt, the Rotcleaver",
+      "Winter Orb",
+      "Wingmate Roc",
+      "Winds of Abandon"
+    ],
+    "Lightning Bolt": [
+      "Lightning Greaves",
+      "Lightning Helix",
+      "Lightning Strike",
+      "Lightning Coils",
+      "Lightning Axe",
+      "Lightning Runner",
+      "Chain Lightning",
+      "Bolt Bend"
+    ],
+    "Rampant Growth": [
+      "Rampaging Baloths",
+      "Rampage of the Clans",
+      "Wild Growth",
+      "Overgrowth",
+      "Fertile Ground",
+      "Sakura-Tribe Elder"
+    ],
+    "Dark Ritual": [
+      "Dark Confidant",
+      "Dark Petition",
+      "Dark Deal",
+      "Dark Prophecy",
+      "Dark Tutelage",
+      "Cabal Ritual",
+      "Songs of the Damned"
+    ],
+    "Brainstorm": [
+      "Brain Freeze",
+      "Brainstealer Dragon",
+      "Braingeyser",
+      "Brain Maggot",
+      "Ponder",
+      "Preordain"
+    ],
+    "Swan Song": [
+      "Silence",
+      "Flusterstorm",
+      "Autumn's Veil",
+      "Veil of Summer",
+      "Song of the Dryads"
+    ],
+    "Beast Within": [
+      "Beast Whisperer",
+      "Beastmaster Ascension",
+      "Beast Attack",
+      "Generous Gift",
+      "Pongify",
+      "Rapid Hybridization"
+    ]
+  },
+  "generalPool": [
+    "Arcane Signet",
+    "Command Tower",
+    "Cyclonic Drift",
+    "Talisman of Dominance",
+    "Fellwar Stone",
+    "Chromatic Lantern",
+    "Smothering Tithe",
+    "Esper Sentinel",
+    "Trouble in Pairs",
+    "Rhystic Study",
+    "Guardian Project",
+    "Beast Whisperer",
+    "Sylvan Library",
+    "Sensei's Divining Top",
+    "Sword of Feast and Famine",
+    "Lightning Greaves",
+    "Swiftfoot Boots",
+    "Heroic Intervention",
+    "Boros Charm",
+    "Ghostly Prison",
+    "Propaganda",
+    "Sphere of Safety",
+    "Aura Shards",
+    "Blasphemous Act",
+    "Vandalblast",
+    "Chaos Warp",
+    "Anguished Unmaking",
+    "Assassin's Trophy",
+    "Vindicate",
+    "Deadly Dispute",
+    "Village Rites",
+    "Culling Ritual",
+    "Bojuka Bog",
+    "Reliquary Tower",
+    "Ancient Tomb",
+    "Cavern of Souls",
+    "Rogue's Passage",
+    "Nykthos, Shrine to Nyx",
+    "Wooded Foothills",
+    "Windswept Heath"
+  ]
+}
