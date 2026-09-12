@@ -177,6 +177,7 @@ function leave() {
         :track-game-scores="data.tournament.trackGameScores"
         :is-host="isHost"
         :my-entrant-id="myEntrantId"
+        :multi-pod="data.pods.length > 1"
       />
     </template>
   </div>

@@ -93,7 +93,9 @@ export const reportMatchResult = mutation({
 
     const { pod, tournament } = await podTournament(ctx, match.podId);
     assertHost(tournament, sessionId);
-    if (pod.status !== "active") throw new Error("Pod is not active");
+    if (pod.status !== "active") {
+      throw new Error("This pod is finished — its results are frozen");
+    }
 
     if (
       !isLegalResult(
@@ -142,6 +144,9 @@ export const clearMatchResult = mutation({
 
     const { pod, tournament } = await podTournament(ctx, match.podId);
     assertHost(tournament, sessionId);
+    if (pod.status !== "active") {
+      throw new Error("This pod is finished — its results are frozen");
+    }
     if (pod.currentRound > match.round) {
       throw new Error(
         `Round ${match.round} is closed — round ${pod.currentRound} was already paired from its results`,
