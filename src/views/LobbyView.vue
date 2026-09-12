@@ -6,6 +6,7 @@ import { sessionId, displayName, setDisplayName } from "../lib/session";
 import { enterGame, showProfile } from "../lib/store";
 import {
   draftTournamentId,
+  openDraftJoin,
   openDraftSetup,
   openDraftTournament,
 } from "../lib/draftStore";
@@ -305,6 +306,20 @@ async function submit() {
         <span class="mt-0.5 block text-xs text-fg-muted">
           Swiss pairings, live standings and prize payouts for a pod — or for a
           whole store event.
+        </span>
+      </button>
+
+      <button
+        type="button"
+        class="w-full rounded-xl border border-board-edge bg-board-panel px-4 py-4 text-left transition-colors hover:border-board-accent"
+        @click="openDraftJoin()"
+      >
+        <span class="text-sm font-medium text-fg-secondary">
+          Join a draft
+        </span>
+        <span class="mt-0.5 block text-xs text-fg-muted">
+          Have a code? Claim your seat and follow the standings from your own
+          phone.
         </span>
       </button>
     </div>

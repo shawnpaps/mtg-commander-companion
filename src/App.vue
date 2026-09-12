@@ -5,6 +5,7 @@ import GameView from "./views/GameView.vue";
 import ProfileView from "./views/ProfileView.vue";
 import DraftSetupView from "./views/DraftSetupView.vue";
 import DraftTournamentView from "./views/DraftTournamentView.vue";
+import DraftJoinView from "./views/DraftJoinView.vue";
 import { ensureSession, sessionId } from "./lib/session";
 import { useClerkConvexBridge } from "./lib/auth";
 import { gameCode, showProfile } from "./lib/store";
@@ -47,6 +48,7 @@ onMounted(async () => {
     <!-- The draft is its own feature, not a game mode: it sits beside the
          table rather than inside it. -->
     <DraftSetupView v-else-if="draftView === 'setup'" />
+    <DraftJoinView v-else-if="draftView === 'join'" />
     <DraftTournamentView
       v-else-if="draftView === 'tournament' && draftTournamentId"
       :tournament-id="draftTournamentId"

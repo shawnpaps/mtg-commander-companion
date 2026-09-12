@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { api } from "@convex/_generated/api";
 import { useMutation, useQuery } from "../../lib/useConvex";
+import { sessionId } from "../../lib/session";
 import { maxRounds } from "@convex/draft/rules";
 import type { Doc, Id } from "@convex/_generated/dataModel";
 import DraftMatchCard from "./DraftMatchCard.vue";
@@ -11,6 +12,10 @@ const props = defineProps<{
   pod: Doc<"draftPods">;
   entrants: Doc<"draftEntrants">[];
   trackGameScores: boolean;
+  /** Organizer controls are hidden entirely rather than shown disabled — a
+      player has no use for a button they will never be allowed to press. */
+  isHost: boolean;
+  myEntrantId: Id<"draftEntrants"> | null;
 }>();
 
 const generatePairings = useMutation(api.draft.engine.generatePairings);
@@ -77,7 +82,8 @@ async function pairNextRound() {
   busy.value = true;
   error.value = null;
   try {
-    await generatePairings({ podId: props.pod._id });
+    if (!sessionId.value) return;
+    await generatePairings({ podId: props.pod._id, sessionId: sessionId.value });
   } catch (e) {
     const raw = e instanceof Error ? e.message : String(e);
     error.value = friendlyError(raw);
@@ -91,7 +97,8 @@ async function extend() {
   busy.value = true;
   error.value = null;
   try {
-    await extendPodRounds({ podId: props.pod._id });
+    if (!sessionId.value) return;
+    await extendPodRounds({ podId: props.pod._id, sessionId: sessionId.value });
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e);
   } finally {
@@ -131,7 +138,7 @@ function friendlyError(raw: string): string {
     </header>
 
     <!-- Primary action, driven entirely by where the pod is. -->
-    <div class="flex flex-col gap-2">
+    <div v-if="isHost" class="flex flex-col gap-2">
       <button
         v-if="primaryAction === 'start'"
         type="button"
@@ -199,6 +206,28 @@ function friendlyError(raw: string): string {
       <p v-if="error" class="text-sm text-danger">{{ error }}</p>
     </div>
 
+    <!-- What a player sees in place of the organizer's controls. -->
+    <div
+      v-else
+      class="rounded-xl border border-board-edge bg-board-panel px-4 py-3"
+    >
+      <p class="text-sm text-fg-secondary">
+        <template v-if="pod.status === 'complete'">This pod is finished.</template>
+        <template v-else-if="notStarted">
+          Waiting for the organizer to start round 1.
+        </template>
+        <template v-else-if="!currentRoundComplete">
+          Round {{ pod.currentRound }} is underway — {{ outstanding }}
+          {{ outstanding === 1 ? "result" : "results" }} still to come in.
+        </template>
+        <template v-else-if="!atFinalRound">
+          Round {{ pod.currentRound }} is done. Waiting on round
+          {{ pod.currentRound + 1 }}.
+        </template>
+        <template v-else>Every round is in.</template>
+      </p>
+    </div>
+
     <DraftStandingsTable
       v-if="standings?.length"
       :rows="standings"
@@ -224,6 +253,8 @@ function friendlyError(raw: string): string {
           :match="match"
           :track-game-scores="trackGameScores"
           :editable="pod.status === 'active' && group.round >= pod.currentRound"
+          :can-report="isHost"
+          :my-entrant-id="myEntrantId"
         />
       </div>
     </section>
