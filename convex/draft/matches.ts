@@ -1,6 +1,7 @@
 import { mutation, query } from "../_generated/server";
 import { v } from "convex/values";
 import { isLegalResult } from "./results";
+import { assertHost, podTournament } from "./access";
 
 /**
  * Reading and reporting matches. Standings are never written here — they are
@@ -75,10 +76,14 @@ export const listPodMatches = query({
 export const reportMatchResult = mutation({
   args: {
     matchId: v.id("draftMatches"),
+    sessionId: v.id("sessions"),
     entrant1GameWins: v.float64(),
     entrant2GameWins: v.float64(),
   },
-  handler: async (ctx, { matchId, entrant1GameWins, entrant2GameWins }) => {
+  handler: async (
+    ctx,
+    { matchId, sessionId, entrant1GameWins, entrant2GameWins },
+  ) => {
     const match = await ctx.db.get(matchId);
     if (!match) throw new Error("Match not found");
 
@@ -86,12 +91,9 @@ export const reportMatchResult = mutation({
       throw new Error("A bye is scored automatically and cannot be edited");
     }
 
-    const pod = await ctx.db.get(match.podId);
-    if (!pod) throw new Error("Pod not found");
+    const { pod, tournament } = await podTournament(ctx, match.podId);
+    assertHost(tournament, sessionId);
     if (pod.status !== "active") throw new Error("Pod is not active");
-
-    const tournament = await ctx.db.get(pod.tournamentId);
-    if (!tournament) throw new Error("Tournament not found");
 
     if (
       !isLegalResult(
@@ -130,16 +132,16 @@ export const reportMatchResult = mutation({
  * re-closes the gate on generating the next one.
  */
 export const clearMatchResult = mutation({
-  args: { matchId: v.id("draftMatches") },
-  handler: async (ctx, { matchId }) => {
+  args: { matchId: v.id("draftMatches"), sessionId: v.id("sessions") },
+  handler: async (ctx, { matchId, sessionId }) => {
     const match = await ctx.db.get(matchId);
     if (!match) throw new Error("Match not found");
     if (match.entrant2Id === null) {
       throw new Error("A bye is scored automatically and cannot be edited");
     }
 
-    const pod = await ctx.db.get(match.podId);
-    if (!pod) throw new Error("Pod not found");
+    const { pod, tournament } = await podTournament(ctx, match.podId);
+    assertHost(tournament, sessionId);
     if (pod.currentRound > match.round) {
       throw new Error(
         `Round ${match.round} is closed — round ${pod.currentRound} was already paired from its results`,
@@ -161,10 +163,23 @@ export const clearMatchResult = mutation({
  * of all future pairings.
  */
 export const setEntrantDropped = mutation({
-  args: { entrantId: v.id("draftEntrants"), dropped: v.boolean() },
-  handler: async (ctx, { entrantId, dropped }) => {
+  args: {
+    entrantId: v.id("draftEntrants"),
+    sessionId: v.id("sessions"),
+    dropped: v.boolean(),
+  },
+  handler: async (ctx, { entrantId, sessionId, dropped }) => {
     const entrant = await ctx.db.get(entrantId);
     if (!entrant) throw new Error("Entrant not found");
+    const tournament = await ctx.db.get(entrant.tournamentId);
+    if (!tournament) throw new Error("Tournament not found");
+    // A player may drop themselves; anyone else doing it is the organizer.
+    if (
+      tournament.hostSessionId !== sessionId &&
+      entrant.sessionId !== sessionId
+    ) {
+      throw new Error("Only the organizer can drop another player");
+    }
     await ctx.db.patch(entrantId, { dropped });
     return { dropped };
   },

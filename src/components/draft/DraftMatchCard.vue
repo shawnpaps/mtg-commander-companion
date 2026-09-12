@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { api } from "@convex/_generated/api";
 import { useMutation } from "../../lib/useConvex";
+import { sessionId } from "../../lib/session";
 import { outcomeOf, resultOptions } from "@convex/draft/results";
 import type { Id } from "@convex/_generated/dataModel";
 
@@ -9,7 +10,9 @@ const props = defineProps<{
   match: {
     _id: Id<"draftMatches">;
     round: number;
+    entrant1Id: Id<"draftEntrants">;
     entrant1Name: string;
+    entrant2Id: Id<"draftEntrants"> | null;
     entrant2Name: string | null;
     entrant1GameWins: number;
     entrant2GameWins: number;
@@ -19,6 +22,10 @@ const props = defineProps<{
   trackGameScores: boolean;
   /** False once a later round has been paired from this round's results. */
   editable: boolean;
+  /** Only the organizer reports results; everyone else is watching. */
+  canReport: boolean;
+  /** Highlights the seat this device holds, so a player finds their table. */
+  myEntrantId: Id<"draftEntrants"> | null;
 }>();
 
 const report = useMutation(api.draft.matches.reportMatchResult);
@@ -44,12 +51,13 @@ function isSelected(option: { entrant1GameWins: number; entrant2GameWins: number
 }
 
 async function choose(option: { entrant1GameWins: number; entrant2GameWins: number }) {
-  if (busy.value || !props.editable) return;
+  if (busy.value || !props.editable || !props.canReport || !sessionId.value) return;
   busy.value = true;
   error.value = null;
   try {
     await report({
       matchId: props.match._id,
+      sessionId: sessionId.value,
       entrant1GameWins: option.entrant1GameWins,
       entrant2GameWins: option.entrant2GameWins,
     });
@@ -61,11 +69,11 @@ async function choose(option: { entrant1GameWins: number; entrant2GameWins: numb
 }
 
 async function undo() {
-  if (busy.value || !props.editable) return;
+  if (busy.value || !props.editable || !props.canReport || !sessionId.value) return;
   busy.value = true;
   error.value = null;
   try {
-    await clear({ matchId: props.match._id });
+    await clear({ matchId: props.match._id, sessionId: sessionId.value });
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e);
   } finally {
@@ -90,6 +98,9 @@ function terseLabel(outcome: "entrant1" | "draw" | "entrant2") {
       <div class="flex items-center justify-between gap-3">
         <span class="text-sm font-medium text-fg-secondary">
           {{ match.entrant1Name }}
+          <span v-if="match.entrant1Id === myEntrantId" class="text-fg-subtle">
+            (you)
+          </span>
         </span>
         <span
           class="rounded-lg border border-board-edge px-2.5 py-1 text-xs text-fg-muted"
@@ -111,6 +122,9 @@ function terseLabel(outcome: "entrant1" | "draw" | "entrant2") {
           "
         >
           {{ match.entrant1Name }}
+          <span v-if="match.entrant1Id === myEntrantId" class="text-fg-subtle">
+            (you)
+          </span>
         </span>
         <span class="shrink-0 text-xs text-fg-subtle">vs</span>
         <span
@@ -119,6 +133,9 @@ function terseLabel(outcome: "entrant1" | "draw" | "entrant2") {
             currentOutcome === 'entrant2' ? 'text-board-accent' : 'text-fg-secondary'
           "
         >
+          <span v-if="match.entrant2Id === myEntrantId" class="text-fg-subtle">
+            (you)
+          </span>
           {{ match.entrant2Name }}
         </span>
       </div>
@@ -128,7 +145,7 @@ function terseLabel(outcome: "entrant1" | "draw" | "entrant2") {
           v-for="option in options"
           :key="option.label"
           type="button"
-          :disabled="busy || !editable"
+          :disabled="busy || !editable || !canReport"
           class="flex-1 rounded-lg border py-2 text-xs font-medium transition-colors disabled:opacity-40"
           :class="
             isSelected(option)
@@ -152,7 +169,7 @@ function terseLabel(outcome: "entrant1" | "draw" | "entrant2") {
           <template v-else> Waiting on a result </template>
         </span>
         <button
-          v-if="match.reported && editable"
+          v-if="match.reported && editable && canReport"
           type="button"
           :disabled="busy"
           class="rounded-md px-2 py-1 text-xs text-fg-subtle transition-colors hover:text-danger disabled:opacity-40"
@@ -164,6 +181,9 @@ function terseLabel(outcome: "entrant1" | "draw" | "entrant2") {
 
       <p v-if="!editable" class="mt-1 text-xs text-fg-subtle">
         Locked — a later round was paired from this result.
+      </p>
+      <p v-else-if="!canReport" class="mt-1 text-xs text-fg-subtle">
+        The organizer enters results for this event.
       </p>
       <p v-if="error" class="mt-2 text-xs text-danger">{{ error }}</p>
     </template>

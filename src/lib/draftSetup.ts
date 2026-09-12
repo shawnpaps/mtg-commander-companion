@@ -43,22 +43,82 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-export function useDraftSetup() {
-  const name = ref("");
-  const players = ref<string[]>([]);
-  const scope = ref<DraftScope>("single-pod");
-  const trackGameScores = ref(false);
-  const targetPodSize = ref(DEFAULT_POD_SIZE);
+const DRAFT_KEY = "boardstate.draftSetup";
 
-  const roundCount = ref(3);
+/**
+ * What gets written to localStorage between steps.
+ *
+ * No tournament row exists until "Start tournament", so until then the roster
+ * lives only in this tab. Typing fourteen names into a phone and losing them to
+ * an accidental refresh is the kind of thing that stops someone using the
+ * feature at all.
+ */
+type PersistedSetup = {
+  name: string;
+  players: string[];
+  scope: DraftScope;
+  trackGameScores: boolean;
+  targetPodSize: number;
+  roundCount: number;
+  roundCountTouched: boolean;
+  prizeScope: PrizeScope;
+  totalPacks: number;
+  prizeDistribution: number[];
+  prizePreset: PrizePreset;
+};
+
+/**
+ * localStorage is absent in the node test runner and can throw in a locked-down
+ * browser, so every touch goes through here rather than assuming it exists.
+ */
+function storage(): Storage | null {
+  try {
+    return typeof localStorage === "undefined" ? null : localStorage;
+  } catch {
+    return null;
+  }
+}
+
+function readPersisted(): Partial<PersistedSetup> | null {
+  try {
+    const raw = storage()?.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<PersistedSetup>;
+    // A stored blob with nothing in it is not worth restoring, and would show
+    // the "picked up where you left off" hint over an empty form.
+    if (!parsed.name?.trim() && !parsed.players?.length) return null;
+    return parsed;
+  } catch {
+    // Corrupt or from an older shape — start clean rather than half-restored.
+    return null;
+  }
+}
+
+export function clearPersistedSetup() {
+  storage()?.removeItem(DRAFT_KEY);
+}
+
+export function useDraftSetup(options: { persist?: boolean } = {}) {
+  const saved = options.persist ? readPersisted() : null;
+
+  const name = ref(saved?.name ?? "");
+  const players = ref<string[]>(saved?.players ?? []);
+  const scope = ref<DraftScope>(saved?.scope ?? "single-pod");
+  const trackGameScores = ref(saved?.trackGameScores ?? false);
+  const targetPodSize = ref(saved?.targetPodSize ?? DEFAULT_POD_SIZE);
+
+  const roundCount = ref(saved?.roundCount ?? 3);
   // Once the organizer moves the stepper themselves, a changing roster clamps
   // their number into range instead of overwriting it.
-  const roundCountTouched = ref(false);
+  const roundCountTouched = ref(saved?.roundCountTouched ?? false);
 
-  const prizeScope = ref<PrizeScope>("per-pod");
-  const totalPacks = ref(4);
-  const prizeDistribution = ref<number[]>([2, 1, 1]);
-  const prizePreset = ref<PrizePreset>("custom");
+  const prizeScope = ref<PrizeScope>(saved?.prizeScope ?? "per-pod");
+  const totalPacks = ref(saved?.totalPacks ?? 4);
+  const prizeDistribution = ref<number[]>(saved?.prizeDistribution ?? [2, 1, 1]);
+  const prizePreset = ref<PrizePreset>(saved?.prizePreset ?? "custom");
+
+  /** True when this wizard opened onto work someone had already started. */
+  const restored = ref(saved !== null);
 
   // Set when the roster outgrows single-pod and the scope is switched for the
   // organizer. It gates "Next" until they have seen it happen — a silent switch
@@ -236,6 +296,65 @@ export function useDraftSetup() {
   const podsValid = computed(() => podSizes.value.length > 0);
   const prizesValid = computed(() => !packsOverAllocated.value);
 
+  // -------------------------------------------------------- persistence ----
+
+  if (options.persist) {
+    watch(
+      [
+        name,
+        players,
+        scope,
+        trackGameScores,
+        targetPodSize,
+        roundCount,
+        roundCountTouched,
+        prizeScope,
+        totalPacks,
+        prizeDistribution,
+        prizePreset,
+      ],
+      () => {
+        const blob: PersistedSetup = {
+          name: name.value,
+          players: players.value,
+          scope: scope.value,
+          trackGameScores: trackGameScores.value,
+          targetPodSize: targetPodSize.value,
+          roundCount: roundCount.value,
+          roundCountTouched: roundCountTouched.value,
+          prizeScope: prizeScope.value,
+          totalPacks: totalPacks.value,
+          prizeDistribution: prizeDistribution.value,
+          prizePreset: prizePreset.value,
+        };
+        try {
+          storage()?.setItem(DRAFT_KEY, JSON.stringify(blob));
+        } catch {
+          // A full or unavailable store is not worth interrupting setup over.
+        }
+      },
+      { deep: true },
+    );
+  }
+
+  /** Throw the whole form away, including anything persisted. */
+  function reset() {
+    name.value = "";
+    players.value = [];
+    scope.value = "single-pod";
+    trackGameScores.value = false;
+    targetPodSize.value = DEFAULT_POD_SIZE;
+    roundCountTouched.value = false;
+    roundCount.value = 3;
+    prizeScope.value = "per-pod";
+    totalPacks.value = 4;
+    prizeDistribution.value = [2, 1, 1];
+    prizePreset.value = "custom";
+    scopeAutoSwitched.value = false;
+    restored.value = false;
+    clearPersistedSetup();
+  }
+
   return {
     // fields
     name,
@@ -249,6 +368,7 @@ export function useDraftSetup() {
     prizeDistribution,
     prizePreset,
     scopeAutoSwitched,
+    restored,
     // derived
     playerCount,
     podSizes,
@@ -277,6 +397,7 @@ export function useDraftSetup() {
     addPlacement,
     removePlacement,
     setTotalPacks,
+    reset,
     // constants re-exported for template use
     MIN_POD_SIZE,
     MAX_POD_SIZE,

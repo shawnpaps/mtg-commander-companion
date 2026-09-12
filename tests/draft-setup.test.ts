@@ -9,7 +9,27 @@
  */
 
 import { nextTick } from "vue";
-import { useDraftSetup, SINGLE_POD_LIMIT } from "../src/lib/draftSetup";
+import {
+  clearPersistedSetup,
+  useDraftSetup,
+  SINGLE_POD_LIMIT,
+} from "../src/lib/draftSetup";
+
+/**
+ * The composable reads and writes localStorage when persistence is on. Node has
+ * none, so stand one up before anything imports it.
+ */
+const store = new Map<string, string>();
+(globalThis as { localStorage?: unknown }).localStorage = {
+  getItem: (k: string) => store.get(k) ?? null,
+  setItem: (k: string, v: string) => void store.set(k, v),
+  removeItem: (k: string) => void store.delete(k),
+  clear: () => store.clear(),
+  key: (i: number) => [...store.keys()][i] ?? null,
+  get length() {
+    return store.size;
+  },
+};
 
 let passed = 0;
 const failures: string[] = [];
@@ -226,6 +246,88 @@ async function run() {
     eq("whitespace is not a name", setup.basicsValid.value, false);
     setup.name.value = "Draft Night";
     eq("a real name unblocks", setup.basicsValid.value, true);
+  }
+
+  section("Persistence — a refresh mid-wizard keeps the roster");
+  {
+    clearPersistedSetup();
+    const first = useDraftSetup({ persist: true });
+    first.name.value = "Saturday Draft";
+    roster(first, 5);
+    first.setRoundCount(4);
+    first.setTotalPacks(9);
+    first.applyPreset("top-heavy");
+    await nextTick();
+
+    eq("something was written", store.size > 0, true);
+
+    // A second composable is what a fresh page load produces.
+    const second = useDraftSetup({ persist: true });
+    await nextTick();
+    eq("name comes back", second.name.value, "Saturday Draft");
+    eq("roster comes back", second.playerCount.value, 5);
+    eq("round count comes back", second.roundCount.value, 4);
+    eq("packs come back", second.totalPacks.value, 9);
+    eq("distribution comes back", second.prizeDistribution.value.join(","), "5,3,1");
+    eq("preset comes back", second.prizePreset.value, "top-heavy");
+    eq("and it knows it was restored", second.restored.value, true);
+  }
+
+  section("Persistence — a touched round count is not overwritten on restore");
+  {
+    clearPersistedSetup();
+    const first = useDraftSetup({ persist: true });
+    first.name.value = "Rounds";
+    roster(first, 8);
+    first.setRoundCount(6);
+    await nextTick();
+
+    const second = useDraftSetup({ persist: true });
+    await nextTick();
+    eq("the chosen 6 survives the restore", second.roundCount.value, 6);
+    eq("not reset to the recommendation", second.roundCount.value === 3, false);
+  }
+
+  section("Persistence — reset clears the saved copy");
+  {
+    clearPersistedSetup();
+    const setup = useDraftSetup({ persist: true });
+    setup.name.value = "Throwaway";
+    roster(setup, 4);
+    await nextTick();
+    eq("saved", store.size > 0, true);
+
+    setup.reset();
+    await nextTick();
+    eq("form is empty", setup.name.value, "");
+    eq("roster is empty", setup.playerCount.value, 0);
+    eq("scope is back to default", setup.scope.value, "single-pod");
+    eq("packs back to default", setup.totalPacks.value, 4);
+
+    // Note the watcher re-saves the now-empty form; what matters is that a
+    // fresh wizard does not treat an empty blob as work worth restoring.
+    const fresh = useDraftSetup({ persist: true });
+    eq("nothing is restored", fresh.restored.value, false);
+    eq("and it starts blank", fresh.playerCount.value, 0);
+  }
+
+  section("Persistence — off by default, and junk is ignored");
+  {
+    clearPersistedSetup();
+    const saved = useDraftSetup({ persist: true });
+    saved.name.value = "Persisted";
+    roster(saved, 3);
+    await nextTick();
+
+    const transient = useDraftSetup();
+    eq("a non-persisting wizard ignores the store", transient.name.value, "");
+    eq("and restores nothing", transient.restored.value, false);
+
+    store.set("boardstate.draftSetup", "{not json");
+    const afterJunk = useDraftSetup({ persist: true });
+    eq("corrupt storage starts clean", afterJunk.name.value, "");
+    eq("rather than half-restored", afterJunk.restored.value, false);
+    clearPersistedSetup();
   }
 
   console.log(

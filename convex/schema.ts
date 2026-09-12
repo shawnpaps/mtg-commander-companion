@@ -230,6 +230,10 @@ export default defineSchema({
 
   draftTournaments: defineTable({
     name: v.string(),
+    // Six characters, same alphabet as games.code. An event that only its host
+    // device can reach is one dead phone away from being unrecoverable, and
+    // players cannot follow standings without it.
+    code: v.string(),
     hostSessionId: v.id("sessions"), // mirrors games.hostSessionId
     scope: v.union(
       v.literal("single-pod"),
@@ -251,7 +255,9 @@ export default defineSchema({
     ),
     createdAt: v.float64(),
     endedAt: v.optional(v.float64()),
-  }).index("by_host_session", ["hostSessionId"]),
+  })
+    .index("by_host_session", ["hostSessionId"])
+    .index("by_code", ["code"]),
 
   // `roundCount` lives here rather than on the tournament because pods in a
   // multi-pod-isolated event can differ in size, and therefore in max rounds.

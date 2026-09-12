@@ -4,14 +4,16 @@ import { api } from "@convex/_generated/api";
 import { useMutation } from "../lib/useConvex";
 import { sessionId } from "../lib/session";
 import { closeDraft, openDraftTournament } from "../lib/draftStore";
-import { useDraftSetup } from "../lib/draftSetup";
+import { clearPersistedSetup, useDraftSetup } from "../lib/draftSetup";
 import type { Id } from "@convex/_generated/dataModel";
 import DraftBasicsStep from "../components/draft/DraftBasicsStep.vue";
 import DraftPodsStep from "../components/draft/DraftPodsStep.vue";
 import DraftPrizesStep from "../components/draft/DraftPrizesStep.vue";
 import DraftReviewStep from "../components/draft/DraftReviewStep.vue";
 
-const setup = useDraftSetup();
+// Persisted between steps: no tournament row exists until the last one, so a
+// refresh here would otherwise throw the whole roster away.
+const setup = useDraftSetup({ persist: true });
 const createTournament = useMutation(api.draft.tournaments.createDraftTournament);
 
 const STEPS = ["Basics", "Pods", "Prizes", "Review"] as const;
@@ -22,6 +24,7 @@ const error = ref<string | null>(null);
 const created = ref<{
   podSizes: number[];
   tournamentId: Id<"draftTournaments">;
+  code: string;
 } | null>(null);
 
 // Each step gates the one after it; the shape of the wizard never changes, so
@@ -54,6 +57,12 @@ function back() {
   step.value -= 1;
 }
 
+/** Cancelling means cancelling — don't resurrect this roster next time. */
+function cancel() {
+  setup.reset();
+  closeDraft();
+}
+
 async function start() {
   if (busy.value || !sessionId.value) return;
   busy.value = true;
@@ -71,7 +80,13 @@ async function start() {
       targetPodSize: setup.targetPodSize.value,
       roundCount: setup.roundCount.value,
     });
-    created.value = { podSizes: result.podSizes, tournamentId: result.tournamentId };
+    created.value = {
+      podSizes: result.podSizes,
+      tournamentId: result.tournamentId,
+      code: result.code,
+    };
+    // The event is on the server now; the draft copy has done its job.
+    clearPersistedSetup();
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e);
   } finally {
@@ -103,6 +118,20 @@ async function start() {
             rounds each.
           </p>
         </div>
+        <div
+          class="w-full rounded-xl border border-board-edge bg-board-panel px-4 py-4"
+        >
+          <p class="text-[11px] uppercase tracking-wide text-fg-muted">
+            Join code
+          </p>
+          <p class="font-mono text-3xl tracking-[0.3em] text-board-accent">
+            {{ created.code }}
+          </p>
+          <p class="mt-2 text-xs text-fg-muted">
+            Players enter this to claim their seat and follow the standings.
+          </p>
+        </div>
+
         <button
           type="button"
           class="rounded-xl bg-board-accent px-6 py-3 text-sm font-semibold text-zinc-950"
@@ -119,7 +148,7 @@ async function start() {
           <button
             type="button"
             class="text-xs text-fg-muted transition-colors hover:text-fg"
-            @click="closeDraft()"
+            @click="cancel()"
           >
             ← Cancel
           </button>
@@ -131,6 +160,20 @@ async function start() {
         <h1 class="text-2xl font-semibold tracking-tight">
           {{ STEPS[step] }}
         </h1>
+
+        <p
+          v-if="setup.restored.value && step === 0"
+          class="mt-2 text-xs text-fg-muted"
+        >
+          Picked up where you left off.
+          <button
+            type="button"
+            class="text-board-accent underline underline-offset-2"
+            @click="cancel()"
+          >
+            Start over
+          </button>
+        </p>
 
         <!-- Progress doubles as backward navigation; forward stays gated on
              each step's own validity. -->
@@ -161,7 +204,7 @@ async function start() {
         <button
           type="button"
           class="rounded-xl border border-board-edge bg-board-panel px-5 py-4 text-sm font-medium text-fg-tertiary"
-          @click="back()"
+          @click="step === 0 ? cancel() : back()"
         >
           {{ step === 0 ? "Cancel" : "Back" }}
         </button>

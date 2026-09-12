@@ -4,6 +4,7 @@ import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { StandingsRow } from "./types";
 import { maxRounds } from "./rules";
+import { assertHostOfPod } from "./access";
 import { computeStandingsPure } from "./standings";
 import { planNextRound } from "./pairings";
 
@@ -69,10 +70,9 @@ export const computeStandings = query({
  * mutation, so a round either exists in full or not at all.
  */
 export const generatePairings = mutation({
-  args: { podId: v.id("draftPods") },
-  handler: async (ctx, { podId }) => {
-    const pod = await ctx.db.get(podId);
-    if (!pod) throw new Error("Pod not found");
+  args: { podId: v.id("draftPods"), sessionId: v.id("sessions") },
+  handler: async (ctx, { podId, sessionId }) => {
+    const { pod } = await assertHostOfPod(ctx, podId, sessionId);
 
     const [matches, entrants] = await Promise.all([
       podMatches(ctx, podId),
@@ -124,10 +124,9 @@ export const generatePairings = mutation({
  * existing because the pod has become a full round robin.
  */
 export const extendPodRounds = mutation({
-  args: { podId: v.id("draftPods") },
-  handler: async (ctx, { podId }) => {
-    const pod = await ctx.db.get(podId);
-    if (!pod) throw new Error("Pod not found");
+  args: { podId: v.id("draftPods"), sessionId: v.id("sessions") },
+  handler: async (ctx, { podId, sessionId }) => {
+    const { pod } = await assertHostOfPod(ctx, podId, sessionId);
     if (pod.status !== "active") throw new Error("Pod is not active");
 
     const entrants = await podEntrants(ctx, podId);

@@ -2,7 +2,8 @@
 import { computed, ref, watch } from "vue";
 import { api } from "@convex/_generated/api";
 import { useQuery } from "../lib/useConvex";
-import { closeDraft, draftTournamentId } from "../lib/draftStore";
+import { closeDraft, forgetDraft } from "../lib/draftStore";
+import { sessionId } from "../lib/session";
 import type { Id } from "@convex/_generated/dataModel";
 import DraftPodPanel from "../components/draft/DraftPodPanel.vue";
 
@@ -12,16 +13,41 @@ const data = useQuery(api.draft.tournaments.getTournament, () => ({
   tournamentId: props.tournamentId,
 }));
 
+// Who this device is at this event: the organizer, a seated player, or a
+// bystander who followed a link.
+const seat = useQuery(api.draft.tournaments.mySeat, () =>
+  sessionId.value
+    ? { tournamentId: props.tournamentId, sessionId: sessionId.value }
+    : null,
+);
+
+const isHost = computed(() => seat.value?.isHost ?? false);
+const myEntrantId = computed(() => seat.value?.entrantId ?? null);
+const copied = ref(false);
+
+async function copyCode() {
+  if (!data.value) return;
+  try {
+    await navigator.clipboard.writeText(data.value.tournament.code);
+    copied.value = true;
+    setTimeout(() => (copied.value = false), 1500);
+  } catch {
+    // Clipboard access is routinely refused; the code is on screen regardless.
+  }
+}
+
 const selectedPodId = ref<Id<"draftPods"> | null>(null);
 
 // Land on the first pod, and don't strand the selection if the tournament
 // being viewed changes underneath it.
 watch(
-  data,
-  (value) => {
+  [data, seat],
+  ([value, mine]) => {
     if (!value) return;
     const stillThere = value.pods.some((p) => p._id === selectedPodId.value);
-    if (!stillThere) selectedPodId.value = value.pods[0]?._id ?? null;
+    if (stillThere) return;
+    // A player cares about one pod out of however many, so start them there.
+    selectedPodId.value = mine?.podId ?? value.pods[0]?._id ?? null;
   },
   { immediate: true },
 );
@@ -39,8 +65,7 @@ const scopeLabel = computed(() =>
 );
 
 function leave() {
-  draftTournamentId.value = null;
-  closeDraft();
+  forgetDraft();
 }
 </script>
 
@@ -86,6 +111,41 @@ function leave() {
           {{ scopeLabel }} · {{ data.entrants.length }} players ·
           {{ data.tournament.trackGameScores ? "game scores" : "match results" }}
         </p>
+
+        <!-- The way anyone else gets in. Shown to everyone, because a player
+             who has the code can pass it to the person next to them. -->
+        <button
+          type="button"
+          class="mt-3 flex w-full items-center justify-between gap-3 rounded-xl border border-board-edge bg-board-panel px-4 py-3 text-left transition-colors hover:border-board-accent"
+          @click="copyCode()"
+        >
+          <span>
+            <span class="block text-[11px] uppercase tracking-wide text-fg-muted">
+              Join code
+            </span>
+            <span
+              class="font-mono text-xl tracking-[0.3em] text-board-accent"
+            >
+              {{ data.tournament.code }}
+            </span>
+          </span>
+          <span class="shrink-0 text-xs text-fg-subtle">
+            {{ copied ? "Copied" : "Tap to copy" }}
+          </span>
+        </button>
+
+        <p class="mt-2 text-xs text-fg-subtle">
+          <template v-if="isHost">
+            You are running this event.
+            <template v-if="seat?.name"> Seated as {{ seat.name }}.</template>
+          </template>
+          <template v-else-if="seat?.name">
+            You are seated as {{ seat.name }}.
+          </template>
+          <template v-else>
+            You are watching. Join with the code above to claim your seat.
+          </template>
+        </p>
       </header>
 
       <!-- Only worth a selector when there is more than one pod to choose. -->
@@ -115,6 +175,8 @@ function leave() {
         :pod="selectedPod"
         :entrants="entrantsForPod"
         :track-game-scores="data.tournament.trackGameScores"
+        :is-host="isHost"
+        :my-entrant-id="myEntrantId"
       />
     </template>
   </div>
