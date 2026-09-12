@@ -6,6 +6,7 @@ import { sessionId } from "../../lib/session";
 import { maxRounds } from "@convex/draft/rules";
 import type { Doc, Id } from "@convex/_generated/dataModel";
 import DraftMatchCard from "./DraftMatchCard.vue";
+import DraftSeatingChart from "./DraftSeatingChart.vue";
 import DraftStandingsTable from "./DraftStandingsTable.vue";
 import DraftResultsPanel from "./DraftResultsPanel.vue";
 
@@ -153,6 +154,15 @@ function friendlyError(raw: string): string {
         </template>
       </span>
     </header>
+
+    <!-- Where the pod physically sits for the draft. Decided once, before
+         round 1; the chart stays afterward as a read-only reference. -->
+    <DraftSeatingChart
+      :pod="pod"
+      :entrants="entrants"
+      :is-host="isHost"
+      :my-entrant-id="myEntrantId"
+    />
 
     <!-- Primary action, driven entirely by where the pod is. -->
     <div v-if="isHost" class="flex flex-col gap-2">

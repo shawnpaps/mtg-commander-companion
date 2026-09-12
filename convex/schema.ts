@@ -277,6 +277,11 @@ export default defineSchema({
     userId: v.optional(v.id("users")), // if a logged-in user
     hadBye: v.boolean(), // enforces max-one-bye across the event
     dropped: v.boolean(),
+    // 0-based position in the draft circle, unique within the pod. Optional
+    // because entrants are created at setup and seated later, at the table.
+    // Same name as players.seatIndex, different world: board seating there,
+    // draft seating here — the two never interact.
+    seatIndex: v.optional(v.float64()),
   })
     .index("by_tournament", ["tournamentId"])
     .index("by_pod", ["podId"]),
