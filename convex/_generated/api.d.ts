@@ -21,6 +21,7 @@ import type * as draft_pods from "../draft/pods.js";
 import type * as draft_prizes from "../draft/prizes.js";
 import type * as draft_results from "../draft/results.js";
 import type * as draft_rules from "../draft/rules.js";
+import type * as draft_seating from "../draft/seating.js";
 import type * as draft_standings from "../draft/standings.js";
 import type * as draft_tournaments from "../draft/tournaments.js";
 import type * as draft_types from "../draft/types.js";
@@ -53,6 +54,7 @@ declare const fullApi: ApiFromModules<{
   "draft/prizes": typeof draft_prizes;
   "draft/results": typeof draft_results;
   "draft/rules": typeof draft_rules;
+  "draft/seating": typeof draft_seating;
   "draft/standings": typeof draft_standings;
   "draft/tournaments": typeof draft_tournaments;
   "draft/types": typeof draft_types;

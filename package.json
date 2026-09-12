@@ -12,10 +12,11 @@
     "seed": "convex run scryfall:seedBulkCards",
     "test:draft": "esbuild tests/draft-engine.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/draft-engine.test.mjs --log-level=warning && node node_modules/.cache/draft-engine.test.mjs",
     "test:pods": "esbuild tests/draft-pods.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/draft-pods.test.mjs --log-level=warning && node node_modules/.cache/draft-pods.test.mjs",
-    "test": "npm run test:draft && npm run test:pods && npm run test:setup && npm run test:results && npm run test:prizes",
+    "test": "npm run test:draft && npm run test:pods && npm run test:setup && npm run test:results && npm run test:prizes && npm run test:seating",
     "test:setup": "esbuild tests/draft-setup.test.ts --bundle --platform=node --format=esm --alias:@convex=./convex --outfile=node_modules/.cache/draft-setup.test.mjs --log-level=warning && node node_modules/.cache/draft-setup.test.mjs",
     "test:results": "esbuild tests/draft-results.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/draft-results.test.mjs --log-level=warning && node node_modules/.cache/draft-results.test.mjs",
-    "test:prizes": "esbuild tests/draft-prizes.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/draft-prizes.test.mjs --log-level=warning && node node_modules/.cache/draft-prizes.test.mjs"
+    "test:prizes": "esbuild tests/draft-prizes.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/draft-prizes.test.mjs --log-level=warning && node node_modules/.cache/draft-prizes.test.mjs",
+    "test:seating": "esbuild tests/draft-seating.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/draft-seating.test.mjs --log-level=warning && node node_modules/.cache/draft-seating.test.mjs"
   },
   "dependencies": {
     "@clerk/vue": "^2.4.18",
