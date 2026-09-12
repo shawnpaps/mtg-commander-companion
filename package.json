@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit",
     "convex": "convex dev",
-    "seed": "convex run scryfall:seedBulkCards"
+    "seed": "convex run scryfall:seedBulkCards",
+    "test:draft": "esbuild tests/draft-engine.test.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/draft-engine.test.mjs --log-level=warning && node node_modules/.cache/draft-engine.test.mjs"
   },
   "dependencies": {
     "@clerk/vue": "^2.4.18",
