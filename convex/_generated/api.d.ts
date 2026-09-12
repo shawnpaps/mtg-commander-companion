@@ -12,6 +12,8 @@ import type * as admin from "../admin.js";
 import type * as cardCache from "../cardCache.js";
 import type * as cards from "../cards.js";
 import type * as decks from "../decks.js";
+import type * as draft_rules from "../draft/rules.js";
+import type * as draft_types from "../draft/types.js";
 import type * as games from "../games.js";
 import type * as log from "../log.js";
 import type * as players from "../players.js";
@@ -32,6 +34,8 @@ declare const fullApi: ApiFromModules<{
   cardCache: typeof cardCache;
   cards: typeof cards;
   decks: typeof decks;
+  "draft/rules": typeof draft_rules;
+  "draft/types": typeof draft_types;
   games: typeof games;
   log: typeof log;
   players: typeof players;
