@@ -7,7 +7,7 @@ const TOURNAMENT_KEY = "boardstate.draftTournamentId";
  * Draft navigation, kept apart from the Commander store on purpose — the two
  * features share a shell and nothing else.
  */
-export type DraftView = "none" | "setup";
+export type DraftView = "none" | "setup" | "tournament";
 
 export const draftView = ref<DraftView>("none");
 
@@ -26,6 +26,11 @@ watch(draftTournamentId, (value) => {
 
 export function openDraftSetup() {
   draftView.value = "setup";
+}
+
+export function openDraftTournament(id: Id<"draftTournaments">) {
+  draftTournamentId.value = id;
+  draftView.value = "tournament";
 }
 
 export function closeDraft() {
