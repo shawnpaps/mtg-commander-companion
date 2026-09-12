@@ -3,8 +3,9 @@ import { computed, ref } from "vue";
 import { api } from "@convex/_generated/api";
 import { useMutation } from "../lib/useConvex";
 import { sessionId } from "../lib/session";
-import { closeDraft, draftTournamentId } from "../lib/draftStore";
+import { closeDraft, openDraftTournament } from "../lib/draftStore";
 import { useDraftSetup } from "../lib/draftSetup";
+import type { Id } from "@convex/_generated/dataModel";
 import DraftBasicsStep from "../components/draft/DraftBasicsStep.vue";
 import DraftPodsStep from "../components/draft/DraftPodsStep.vue";
 import DraftPrizesStep from "../components/draft/DraftPrizesStep.vue";
@@ -18,7 +19,10 @@ const step = ref(0);
 
 const busy = ref(false);
 const error = ref<string | null>(null);
-const created = ref<{ podSizes: number[] } | null>(null);
+const created = ref<{
+  podSizes: number[];
+  tournamentId: Id<"draftTournaments">;
+} | null>(null);
 
 // Each step gates the one after it; the shape of the wizard never changes, so
 // the single-pod path still walks through a (trivial) pods step.
@@ -67,8 +71,7 @@ async function start() {
       targetPodSize: setup.targetPodSize.value,
       roundCount: setup.roundCount.value,
     });
-    draftTournamentId.value = result.tournamentId;
-    created.value = { podSizes: result.podSizes };
+    created.value = { podSizes: result.podSizes, tournamentId: result.tournamentId };
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e);
   } finally {
@@ -79,9 +82,8 @@ async function start() {
 
 <template>
   <div class="mx-auto flex min-h-screen w-full max-w-md flex-col px-5 py-8 sm:max-w-lg">
-    <!-- Created. The round view that takes it from here is not built yet, so
-         confirm what landed rather than dropping the organizer somewhere
-         blank. -->
+    <!-- Created. Confirm what landed before handing over to the round view,
+         so the organizer can catch a wrong roster before pairings exist. -->
     <template v-if="created">
       <div class="flex flex-1 flex-col items-center justify-center gap-5 text-center">
         <div
@@ -104,9 +106,9 @@ async function start() {
         <button
           type="button"
           class="rounded-xl bg-board-accent px-6 py-3 text-sm font-semibold text-zinc-950"
-          @click="closeDraft()"
+          @click="openDraftTournament(created.tournamentId)"
         >
-          Done
+          Start round 1
         </button>
       </div>
     </template>

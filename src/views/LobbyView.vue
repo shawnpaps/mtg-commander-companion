@@ -4,7 +4,11 @@ import { api } from "@convex/_generated/api";
 import { useMutation, useQuery } from "../lib/useConvex";
 import { sessionId, displayName, setDisplayName } from "../lib/session";
 import { enterGame, showProfile } from "../lib/store";
-import { openDraftSetup } from "../lib/draftStore";
+import {
+  draftTournamentId,
+  openDraftSetup,
+  openDraftTournament,
+} from "../lib/draftStore";
 import { convexAuthenticated, isSignedIn } from "../lib/auth";
 import AuthControls from "../components/AuthControls.vue";
 import type { Id } from "@convex/_generated/dataModel";
@@ -276,7 +280,20 @@ async function submit() {
 
     <!-- Running a draft is a different job from sitting down at a table, so it
          gets its own entry rather than another format chip above. -->
-    <div class="mt-8 border-t border-board-edge pt-6">
+    <div class="mt-8 flex flex-col gap-2 border-t border-board-edge pt-6">
+      <button
+        v-if="draftTournamentId"
+        type="button"
+        class="w-full rounded-xl border border-board-accent bg-board-accent/10 px-4 py-4 text-left"
+        @click="openDraftTournament(draftTournamentId)"
+      >
+        <span class="text-sm font-medium text-board-accent">
+          Resume your draft
+        </span>
+        <span class="mt-0.5 block text-xs text-fg-muted">
+          Pick the tournament back up where you left it.
+        </span>
+      </button>
       <button
         type="button"
         class="w-full rounded-xl border border-board-edge bg-board-panel px-4 py-4 text-left transition-colors hover:border-board-accent"
