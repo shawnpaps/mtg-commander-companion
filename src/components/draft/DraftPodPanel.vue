@@ -7,6 +7,7 @@ import { maxRounds } from "@convex/draft/rules";
 import type { Doc, Id } from "@convex/_generated/dataModel";
 import DraftMatchCard from "./DraftMatchCard.vue";
 import DraftStandingsTable from "./DraftStandingsTable.vue";
+import DraftResultsPanel from "./DraftResultsPanel.vue";
 
 const props = defineProps<{
   pod: Doc<"draftPods">;
@@ -16,10 +17,13 @@ const props = defineProps<{
       player has no use for a button they will never be allowed to press. */
   isHost: boolean;
   myEntrantId: Id<"draftEntrants"> | null;
+  /** Drives whether results are labelled with a pod number. */
+  multiPod: boolean;
 }>();
 
 const generatePairings = useMutation(api.draft.engine.generatePairings);
 const extendPodRounds = useMutation(api.draft.engine.extendPodRounds);
+const completePod = useMutation(api.draft.completion.completePod);
 
 const podMatches = useQuery(api.draft.matches.listPodMatches, () => ({
   podId: props.pod._id,
@@ -87,6 +91,19 @@ async function pairNextRound() {
   } catch (e) {
     const raw = e instanceof Error ? e.message : String(e);
     error.value = friendlyError(raw);
+  } finally {
+    busy.value = false;
+  }
+}
+
+async function finish() {
+  if (busy.value || !sessionId.value) return;
+  busy.value = true;
+  error.value = null;
+  try {
+    await completePod({ podId: props.pod._id, sessionId: sessionId.value });
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : String(e);
   } finally {
     busy.value = false;
   }
@@ -182,14 +199,15 @@ function friendlyError(raw: string): string {
       <template v-if="primaryAction === 'finish'">
         <button
           type="button"
-          disabled
-          class="rounded-xl bg-board-accent py-4 text-base font-semibold text-zinc-950 opacity-30"
+          :disabled="busy"
+          class="rounded-xl bg-board-accent py-4 text-base font-semibold text-zinc-950 transition-opacity disabled:opacity-30"
+          @click="finish()"
         >
-          Complete pod
+          {{ busy ? "Finishing…" : "Complete pod" }}
         </button>
         <p class="text-center text-xs text-fg-muted">
-          Every round is in. Final standings and prize payout arrive in the next
-          release.
+          Every round is in. Finishing freezes the standings and awards the
+          packs — results can't be edited afterwards.
         </p>
       </template>
 
@@ -228,8 +246,15 @@ function friendlyError(raw: string): string {
       </p>
     </div>
 
+    <DraftResultsPanel
+      v-if="pod.status === 'complete'"
+      :pod="pod"
+      :multi-pod="multiPod"
+      :my-entrant-id="myEntrantId"
+    />
+
     <DraftStandingsTable
-      v-if="standings?.length"
+      v-else-if="standings?.length"
       :rows="standings"
       :track-game-scores="trackGameScores"
     />
