@@ -216,4 +216,92 @@ export default defineSchema({
   })
     .index("by_game", ["gameId"])
     .index("by_game_voter", ["gameId", "voterPlayerId"]),
+
+  // --- Swiss draft tournaments -------------------------------------------
+  // Deliberately disjoint from the Commander/life-tracker tables above: a draft
+  // entrant is a tournament seat, not a `players` row with life and poison. The
+  // only shared table is `sessions`, read-only, for ownership.
+  //
+  // Standings, tiebreakers, pods and pairings are all derived at read time by
+  // pure functions in convex/draft/. Nothing computed is cached here — a
+  // player's OMW% keeps moving as their past opponents play later rounds, so a
+  // stored copy is stale the moment it is written. The lone exception is
+  // `draftFinalStandings`, frozen once when the tournament completes.
+
+  draftTournaments: defineTable({
+    name: v.string(),
+    hostSessionId: v.id("sessions"), // mirrors games.hostSessionId
+    scope: v.union(
+      v.literal("single-pod"),
+      v.literal("multi-pod-isolated"),
+      // Accepted by the schema but not buildable in v1 — a deliberate hook so
+      // shared-standings multi-pod does not need a migration later.
+      v.literal("multi-pod-shared"),
+    ),
+    // Governs how much the result-entry UI asks for, and therefore how deep the
+    // tiebreaker chain can go (GW%/OGW% need per-game scores).
+    trackGameScores: v.boolean(),
+    prizeScope: v.union(v.literal("per-pod"), v.literal("global")),
+    totalPacks: v.float64(), // per-pod count if prizeScope=per-pod, else global pool
+    prizeDistribution: v.array(v.float64()), // positional: [2,1,1] = 1st→2, 2nd→1, 3rd→1
+    status: v.union(
+      v.literal("setup"),
+      v.literal("active"),
+      v.literal("complete"),
+    ),
+    createdAt: v.float64(),
+    endedAt: v.optional(v.float64()),
+  }).index("by_host_session", ["hostSessionId"]),
+
+  // `roundCount` lives here rather than on the tournament because pods in a
+  // multi-pod-isolated event can differ in size, and therefore in max rounds.
+  draftPods: defineTable({
+    tournamentId: v.id("draftTournaments"),
+    index: v.float64(), // 1-based, for display ("Pod 2")
+    roundCount: v.float64(), // the CHOSEN count, persisted (extensible mid-event)
+    currentRound: v.float64(), // 0 = not started
+    status: v.union(v.literal("active"), v.literal("complete")),
+  }).index("by_tournament", ["tournamentId"]),
+
+  draftEntrants: defineTable({
+    tournamentId: v.id("draftTournaments"),
+    podId: v.id("draftPods"),
+    name: v.string(),
+    sessionId: v.optional(v.id("sessions")), // link to a device/person if present
+    userId: v.optional(v.id("users")), // if a logged-in user
+    hadBye: v.boolean(), // enforces max-one-bye across the event
+    dropped: v.boolean(),
+  })
+    .index("by_tournament", ["tournamentId"])
+    .index("by_pod", ["podId"]),
+
+  // A bye is a match with `entrant2Id: null`, stored 2–0, which is how MTG
+  // scores it. Tiebreaker math must skip null-opponent matches when averaging
+  // opponents' percentages.
+  //
+  // Two entrant indexes exist because an entrant is sometimes entrant1 and
+  // sometimes entrant2; their full history is both queries merged, since Convex
+  // cannot OR across indexes.
+  draftMatches: defineTable({
+    podId: v.id("draftPods"),
+    round: v.float64(),
+    entrant1Id: v.id("draftEntrants"),
+    entrant2Id: v.union(v.id("draftEntrants"), v.null()), // null = bye
+    entrant1GameWins: v.float64(), // 0–2 typical; a bye is stored as 2–0
+    entrant2GameWins: v.float64(),
+    reported: v.boolean(), // round cannot advance until all matches reported
+  })
+    .index("by_pod_round", ["podId", "round"])
+    .index("by_entrant1", ["entrant1Id"])
+    .index("by_entrant2", ["entrant2Id"]),
+
+  // Written once, at completion, to freeze the outcome. The only persisted
+  // computed data in the draft feature.
+  draftFinalStandings: defineTable({
+    tournamentId: v.id("draftTournaments"),
+    podId: v.id("draftPods"),
+    entrantId: v.id("draftEntrants"),
+    rank: v.float64(),
+    packsAwarded: v.float64(),
+  }).index("by_pod", ["podId"]),
 });
