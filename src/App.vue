@@ -3,9 +3,11 @@ import { onMounted, ref } from "vue";
 import LobbyView from "./views/LobbyView.vue";
 import GameView from "./views/GameView.vue";
 import ProfileView from "./views/ProfileView.vue";
+import DraftSetupView from "./views/DraftSetupView.vue";
 import { ensureSession, sessionId } from "./lib/session";
 import { useClerkConvexBridge } from "./lib/auth";
 import { gameCode, showProfile } from "./lib/store";
+import { draftView } from "./lib/draftStore";
 
 const error = ref<string | null>(null);
 
@@ -41,6 +43,9 @@ onMounted(async () => {
     </div>
 
     <ProfileView v-else-if="showProfile" @close="showProfile = false" />
+    <!-- The draft is its own feature, not a game mode: it sits beside the
+         table rather than inside it. -->
+    <DraftSetupView v-else-if="draftView === 'setup'" />
     <GameView v-else-if="gameCode" :code="gameCode" />
     <LobbyView v-else />
   </main>

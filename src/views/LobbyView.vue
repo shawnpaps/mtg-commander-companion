@@ -4,6 +4,7 @@ import { api } from "@convex/_generated/api";
 import { useMutation, useQuery } from "../lib/useConvex";
 import { sessionId, displayName, setDisplayName } from "../lib/session";
 import { enterGame, showProfile } from "../lib/store";
+import { openDraftSetup } from "../lib/draftStore";
 import { convexAuthenticated, isSignedIn } from "../lib/auth";
 import AuthControls from "../components/AuthControls.vue";
 import type { Id } from "@convex/_generated/dataModel";
@@ -272,5 +273,23 @@ async function submit() {
         {{ busy ? 'Working…' : mode === 'create' ? 'Create game' : 'Join game' }}
       </button>
     </form>
+
+    <!-- Running a draft is a different job from sitting down at a table, so it
+         gets its own entry rather than another format chip above. -->
+    <div class="mt-8 border-t border-board-edge pt-6">
+      <button
+        type="button"
+        class="w-full rounded-xl border border-board-edge bg-board-panel px-4 py-4 text-left transition-colors hover:border-board-accent"
+        @click="openDraftSetup()"
+      >
+        <span class="text-sm font-medium text-fg-secondary">
+          Run a draft
+        </span>
+        <span class="mt-0.5 block text-xs text-fg-muted">
+          Swiss pairings, live standings and prize payouts for a pod — or for a
+          whole store event.
+        </span>
+      </button>
+    </div>
   </div>
 </template>
