@@ -14,8 +14,12 @@ export const MATCH_POINTS = { win: 3, draw: 1, loss: 0 } as const;
  */
 export const TIEBREAKER_FLOOR = 1 / 3;
 
-/** Default seats per pod when splitting a field. */
+/** Default seats per pod when splitting a field, and the range the organizer
+ * can drag it to. A pod below MIN_POD_SIZE is not worth drafting — three people
+ * cannot play three Swiss rounds without an immediate rematch. */
 export const DEFAULT_POD_SIZE = 8;
+export const MIN_POD_SIZE = 4;
+export const MAX_POD_SIZE = 8;
 
 /** Recommended Swiss rounds for n players: ceil(log2(n)), never fewer than 3. */
 export function recommendedRounds(n: number): number {
